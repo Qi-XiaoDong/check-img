@@ -125,7 +125,9 @@ const zoomTo = (num: number) => {
 }
 
 const reset = () => {
-  viewerIns.value?.rotateTo(0)
+  // viewerIns.value?.rotateTo(0)
+
+  viewerIns.value?.reset()
   viewerIns.value?.zoomTo(defaultZoom)
 }
 
