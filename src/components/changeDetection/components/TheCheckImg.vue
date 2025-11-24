@@ -3,7 +3,7 @@
     ref="photoWrapperRef"
     class="photo-wrapper"
     style="flex: 1; height: 100%; border: 1px solid red"
-  ></div>
+  />
 </template>
 
 <script setup lang="ts">
@@ -11,18 +11,43 @@ import 'viewerjs/dist/viewer.css'
 import Viewer from 'viewerjs'
 import { onMounted, ref, watch } from 'vue'
 import img1 from '@/assets/image/img1.jpg'
+import { useCreateDom } from '../hooks/useCreateDom'
+import { useViewerEvent } from '../hooks/useViewerEvent'
+import { useFormatDoodleList } from '../hooks/useFormatDoodleList'
+import { useMouseEvent } from '../hooks/useMouseEvent'
 
 const viewerIns = ref<Viewer | null>(null)
+
+const imageIns = ref<HTMLImageElement | null>(null)
+
+// 变焦倍数
+const zoomNum = ref(1)
+
+const isMovable = ref(true)
+
 // 触发器
 const photoWrapperRef = ref<HTMLDivElement | null>(null)
 
-let defaultZoom = 0
+// 事件处理
+const { defaultZoom, destroyViewer, zoom, rotate, zoomTo, reset } = useViewerEvent(viewerIns as any)
+
+const { doodleList, setDoodleList } = useFormatDoodleList(zoomNum as any)
+const { doodleContainerElement } = useCreateDom({
+  imageIns: imageIns as any,
+  viewerIns: viewerIns as any,
+  photoWrapperRef: photoWrapperRef as any,
+  doodleList: doodleList as any,
+  zoom: zoomNum as any,
+})
+
+useMouseEvent({
+  dom: doodleContainerElement,
+  setDoodleList,
+})
 
 onMounted(() => {
   createViewer()
 })
-
-const isMovable = ref(true)
 
 const createViewer = () => {
   const img = document.createElement('img')
@@ -44,13 +69,15 @@ const createViewer = () => {
     navbar: false,
     viewed(e) {
       const image = e.detail.image
+      imageIns.value = image
       const imageNaturalWidth = image.naturalWidth
       const imageNaturalHeight = image.naturalHeight
-      defaultZoom = Math.min(
+      const zoomNUm = Math.min(
         photoWrapperRef.value!.clientWidth / imageNaturalWidth,
         photoWrapperRef.value!.clientHeight / imageNaturalHeight,
       )
-      OViewer.zoomTo(defaultZoom)
+      OViewer.zoomTo(zoomNUm)
+      defaultZoom.value = zoomNUm
     },
     // 核心：move 事件中通过 margin 限制边界
     move: (e: any) => {
@@ -103,32 +130,12 @@ const createViewer = () => {
         if (e.detail.y > e.detail.oldY && e.detail.y > 0) e.preventDefault()
       }
     },
-    // 在 Viewer 初始化的配置中
+    zoom: (e: any) => {
+      zoomNum.value = e.detail.ratio
+    },
   })
+  // 在 Viewer 初始化的配置中
   viewerIns.value = OViewer
-}
-
-const destroyViewer = () => {
-  viewerIns.value?.destroy()
-}
-
-const zoom = (num: number) => {
-  viewerIns.value?.zoom(num)
-}
-
-const rotate = (num: number) => {
-  viewerIns.value?.rotate(num)
-}
-
-const zoomTo = (num: number) => {
-  viewerIns.value?.zoomTo(num)
-}
-
-const reset = () => {
-  // viewerIns.value?.rotateTo(0)
-
-  viewerIns.value?.reset()
-  viewerIns.value?.zoomTo(defaultZoom)
 }
 
 /**
@@ -140,7 +147,19 @@ defineExpose({
   rotate,
   zoomTo,
   reset,
+  destroyViewer,
 })
 </script>
 
-<style></style>
+<style>
+.photo-wrapper {
+  overflow: hidden;
+}
+.is-doodle .doodle-mask {
+  display: none;
+  pointer-events: none;
+}
+.is-doodle .doodle-container {
+  pointer-events: none;
+}
+</style>
