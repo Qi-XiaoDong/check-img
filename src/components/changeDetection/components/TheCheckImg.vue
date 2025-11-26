@@ -2,6 +2,7 @@
   <div
     ref="photoWrapperRef"
     class="photo-wrapper"
+    :class="{ 'is-doodle': !allowDraw }"
     style="flex: 1; height: 100%; border: 1px solid red"
   />
 </template>
@@ -59,7 +60,7 @@ const { doodleContainerElement, clearDraWRenderElement } = useCreateDom({
   doodleList: doodleList as any,
 })
 
-const { setDrawType } = useMouseEvent({
+const { setDrawType, changeAllowDraw, allowDraw } = useMouseEvent({
   dom: doodleContainerElement,
   setDoodleList,
 })
@@ -196,6 +197,7 @@ defineExpose({
   reset,
   destroyViewer,
   setDrawType,
+  changeAllowDraw,
 })
 </script>
 
@@ -210,7 +212,7 @@ defineExpose({
 .is-doodle .doodle-container {
   pointer-events: none;
 }
-.is-doodle .doodle-container .doodle-container-warp {
+.is-doodle .doodle-container-warp {
   pointer-events: none;
 }
 .is-doodle .doodle-container .doodle-container-warp canvas {

@@ -25,6 +25,7 @@
         <button @click="setDrawType('rect')">矩形</button>
         <button @click="setDrawType('line')">线</button>
         <button @click="currentDetectionIndex = ++currentDetectionIndex % 3">下一张</button>
+        <button @click="setAllowDraw">编辑</button>
       </div>
     </div>
   </div>
@@ -168,6 +169,11 @@ const reset = () => {
 const setDrawType = (type: 'rect' | 'point' | 'line') => {
   originImgRef.value?.setDrawType?.(type)
   targetImgRef.value?.setDrawType(type)
+}
+
+const setAllowDraw = () => {
+  originImgRef.value?.changeAllowDraw()
+  targetImgRef.value?.changeAllowDraw()
 }
 </script>
 

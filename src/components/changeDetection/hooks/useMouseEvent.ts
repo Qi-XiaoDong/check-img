@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { readonly, ref, watch } from 'vue'
 
 export type TDrawType = 'rect' | 'point' | 'line'
 /**
@@ -13,6 +13,9 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
 
   // 绘制图形的类别 矩形 线形 点
   const drawType = ref<TDrawType>('rect')
+
+  // 是否允许绘制
+  const allowDraw = ref(false)
 
   let doodle = {
     x1: 0,
@@ -53,8 +56,17 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
     canvasDom = null
   }
 
-  //给doodleContainerElement 绑定鼠标按下  移动 抬起事件, 记录按下坐标 移动x，y
-  dom.addEventListener('mousedown', domMouseDown)
+  watch(
+    allowDraw,
+    (isAllow) => {
+      if (isAllow) {
+        dom.addEventListener('mousedown', domMouseDown)
+      } else {
+        dom.removeEventListener('mousedown', domMouseDown)
+      }
+    },
+    { immediate: true },
+  )
 
   /**
    * 鼠标按下
@@ -146,5 +158,7 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
 
   return {
     setDrawType: (type: TDrawType) => (drawType.value = type),
+    changeAllowDraw: () => (allowDraw.value = !allowDraw.value),
+    allowDraw: readonly(allowDraw),
   }
 }
