@@ -1,8 +1,8 @@
 import { type Ref, ref, watch } from 'vue'
 import Viewer from 'viewerjs'
-import type { IDoodle } from './useFormatDoodleList'
+import type { IFormatDoodle } from './useFormatDoodleList'
 /**
- * 在图片上创建div元素覆盖整个图片大小
+ * 在图片上元素
  * @param viewerIns
  * @param imageIns
  */
@@ -10,10 +10,9 @@ export const useCreateDom = (data: {
   viewerIns: Ref<Viewer>
   imageIns: Ref<HTMLImageElement>
   photoWrapperRef: Ref<HTMLDivElement>
-  doodleList: Ref<IDoodle[]>
-  zoom: Ref<number>
+  doodleList: Ref<IFormatDoodle[]>
 }) => {
-  const { viewerIns, imageIns, photoWrapperRef, doodleList, zoom } = data
+  const { viewerIns, imageIns, photoWrapperRef, doodleList } = data
   const doodleMaskElement = document.createElement('div')
   const doodleContainerElement = document.createElement('div')
   const doodleContainerWarpElement = document.createElement('div')
@@ -25,7 +24,6 @@ export const useCreateDom = (data: {
     for (let mutation of mutationsList) {
       if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
         adjustMaskElement(mutation.target)
-        console.log(mutation)
       } else {
       }
     }
@@ -65,9 +63,9 @@ export const useCreateDom = (data: {
   )
 
   watch(
-    [doodleList, zoom],
-    ([newDoodleList, zoomNum]) => {
-      if (newDoodleList.length && zoomNum)
+    doodleList,
+    (newDoodleList) => {
+      if (newDoodleList.length)
         newDoodleList.forEach((doodle) => {
           createDoodle(doodle)
         })
@@ -105,31 +103,44 @@ export const useCreateDom = (data: {
    * 创建doodle
    * @param doodle
    */
-  function createDoodle(doodle: IDoodle) {
-    if (!doodle.dom) {
-      const dom = document.createElement('div')
+  function createDoodle(doodle: IFormatDoodle) {
+    const selectorString = `div[data-x1='${doodle.originX1}'][data-y1='${doodle.originY1}']`
+    let dom = doodleContainerWarpElement.querySelector(selectorString) as HTMLDivElement
+    if (!dom) {
+      dom = document.createElement('div')
+      dom.setAttribute('data-x1', doodle.originX1.toString())
+      dom.setAttribute('data-y1', doodle.originY1.toString())
       doodleContainerWarpElement.appendChild(dom)
-      doodle.dom = dom
     }
-    adjustDoodle(doodle, zoom.value)
+    adjustDoodle(doodle, dom)
   }
 
   /**
    * image 放大/缩小
    */
-  function adjustDoodle(doodle: IDoodle, zoom: number) {
-    const { x, y, width, height, color } = doodle
-    doodle.dom!.style.cssText = `
+  function adjustDoodle(doodle: IFormatDoodle, dom: HTMLDivElement) {
+    const { x1, y1, x2, y2, color } = doodle
+    const width = Math.abs(x2 - x1)
+    const height = Math.abs(y2 - y1)
+    dom!.style.cssText = `
           position: absolute;
-          margin-top: ${y * zoom}px;
-          margin-left: ${x * zoom}px;
-          width: ${width * zoom}px;
-          height: ${height * zoom}px;
+          margin-top: ${y1}px;
+          margin-left: ${x1}px;
+          width: ${width}px;
+          height: ${height}px;
           border: 3px solid ${color};
         `
   }
 
+  /**
+   * 清空绘制元素
+   */
+  function clearDraWRenderElement() {
+    doodleContainerWarpElement.innerHTML = ''
+  }
+
   return {
     doodleContainerElement,
+    clearDraWRenderElement,
   }
 }

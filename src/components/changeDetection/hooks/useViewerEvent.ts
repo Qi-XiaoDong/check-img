@@ -1,5 +1,10 @@
 import { ref, unref, type Ref } from 'vue'
 
+/**
+ *  图片事件处理
+ * @param viewerIns
+ * @returns
+ */
 export const useViewerEvent = (viewerIns: Ref<Viewer>) => {
   const defaultZoom = ref(0)
   const destroyViewer = () => {

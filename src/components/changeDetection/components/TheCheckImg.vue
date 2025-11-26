@@ -9,12 +9,29 @@
 <script setup lang="ts">
 import 'viewerjs/dist/viewer.css'
 import Viewer from 'viewerjs'
-import { onMounted, ref, watch } from 'vue'
-import img1 from '@/assets/image/img1.jpg'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useCreateDom } from '../hooks/useCreateDom'
 import { useViewerEvent } from '../hooks/useViewerEvent'
-import { useFormatDoodleList } from '../hooks/useFormatDoodleList'
+import { useFormatDoodleList, type IDoodle } from '../hooks/useFormatDoodleList'
 import { useMouseEvent } from '../hooks/useMouseEvent'
+
+const props = defineProps<{
+  url: string
+  boundingCoordinates?: IDoodle[]
+}>()
+
+const emits = defineEmits<{
+  (e: 'update:boundingCoordinates', data: any): void
+}>()
+
+const _boundingCoordinates = computed({
+  get() {
+    return props.boundingCoordinates
+  },
+  set(val) {
+    emits('update:boundingCoordinates', val)
+  },
+})
 
 const viewerIns = ref<Viewer | null>(null)
 
@@ -28,35 +45,46 @@ const isMovable = ref(true)
 // 触发器
 const photoWrapperRef = ref<HTMLDivElement | null>(null)
 
-// 事件处理
 const { defaultZoom, destroyViewer, zoom, rotate, zoomTo, reset } = useViewerEvent(viewerIns as any)
 
-const { doodleList, setDoodleList } = useFormatDoodleList(zoomNum as any)
-const { doodleContainerElement } = useCreateDom({
+const { doodleList, setDoodleList } = useFormatDoodleList(
+  zoomNum as any,
+  _boundingCoordinates as any,
+)
+
+const { doodleContainerElement, clearDraWRenderElement } = useCreateDom({
   imageIns: imageIns as any,
   viewerIns: viewerIns as any,
   photoWrapperRef: photoWrapperRef as any,
   doodleList: doodleList as any,
-  zoom: zoomNum as any,
 })
 
-useMouseEvent({
+const { setDrawType } = useMouseEvent({
   dom: doodleContainerElement,
   setDoodleList,
 })
 
 onMounted(() => {
-  createViewer()
+  viewerIns.value = createViewer(props.url)
 })
 
-const createViewer = () => {
+watch(
+  () => props.url,
+  (url) => {
+    viewerIns.value = createViewer(url)
+  },
+)
+
+function createViewer(url: string) {
+  destroyViewer()
+  clearDraWRenderElement()
   const img = document.createElement('img')
   img.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
   img.alt = 'Hidden trigger for Viewer.js'
   img.style.display = 'none'
   photoWrapperRef.value!.appendChild(img)
   const OViewer = new Viewer(img!, {
-    url: () => img1,
+    url: () => url,
     inline: true, // 开启页面内直接交互模式
     zoomable: true,
     movable: isMovable.value,
@@ -134,8 +162,8 @@ const createViewer = () => {
       zoomNum.value = e.detail.ratio
     },
   })
-  // 在 Viewer 初始化的配置中
-  viewerIns.value = OViewer
+
+  return OViewer
 }
 
 /**
@@ -148,6 +176,7 @@ defineExpose({
   zoomTo,
   reset,
   destroyViewer,
+  setDrawType,
 })
 </script>
 

@@ -1,8 +1,16 @@
 <template>
   <div class="change-detection-container">
     <div class="detection-canvas">
-      <the-check-img ref="originImgRef" />
-      <the-check-img ref="targetImgRef" />
+      <the-check-img
+        ref="originImgRef"
+        :url="sourceUrl!.mainUrl"
+        v-model:bounding-coordinates="boundingCoordinates"
+      />
+      <the-check-img
+        ref="targetImgRef"
+        :url="sourceUrl!.subUrl"
+        v-model:bounding-coordinates="boundingCoordinates"
+      />
     </div>
     <div class="detection-toolbar">
       <div class="toolbar-left-extension">
@@ -14,6 +22,9 @@
         <button @click="rotate">旋转</button>
         <button @click="zoomTo">100%比例</button>
         <button @click="reset">重置</button>
+        <button @click="setDrawType('rect')">矩形</button>
+        <button @click="setDrawType('line')">线</button>
+        <button @click="currentDetectionIndex = ++currentDetectionIndex % 3">下一张</button>
       </div>
     </div>
   </div>
@@ -21,27 +32,96 @@
 
 <script lang="ts" setup>
 import TheCheckImg from './components/TheCheckImg.vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import checkImg from '@/assets/image/check.png?url'
 
-const props = defineProps<{
-  sourceUrl: { mainUrl: string; subUrl: string }[]
-  boundingCoordinates?: {
-    leftX: number
-    leftY: number
-    rightX: number
-    rightY: number
-    labelName: string
-    labelColor: string
-    labelType: string
-  }[][]
-}>()
+// const props = defineProps<{
+//   sourceUrl: { mainUrl: string; subUrl: string }[]
+//   boundingCoordinates?: {
+//     leftX: number
+//     leftY: number
+//     rightX: number
+//     rightY: number
+//     labelName: string
+//     labelColor: string
+//     labelType: string
+//   }[][]
+// }>()
 
 const currentDetectionIndex = ref(0)
 
-const _boundingCoordinates = ref(props.boundingCoordinates || [])
+const _boundingCoordinates = ref([
+  [
+    {
+      leftX: 200,
+      leftY: 200,
+      rightX: 500,
+      rightY: 500,
+      labelName: '',
+      labelColor: 'red',
+      labelType: '',
+    },
+    {
+      leftX: 0,
+      leftY: 0,
+      rightX: 100,
+      rightY: 100,
+      labelName: '',
+      labelColor: 'yellow',
+      labelType: '',
+    },
+  ],
+  [
+    {
+      leftX: 500,
+      leftY: 500,
+      rightX: 600,
+      rightY: 600,
+      labelName: '',
+      labelColor: 'red',
+      labelType: '',
+    },
+  ],
+  [
+    {
+      leftX: 500,
+      leftY: 500,
+      rightX: 600,
+      rightY: 600,
+      labelName: '',
+      labelColor: 'red',
+      labelType: '',
+    },
+  ],
+])
 
-const originImgRef = ref<any>(null)
-const targetImgRef = ref<any>(null)
+const _sourceUrl = ref([
+  {
+    mainUrl: 'https://cn.bing.com/th?id=OHR.GwailorFort_ZH-CN6731607002_UHD.jpg&pid=hp&w=1920',
+    subUrl: 'https://cn.bing.com/th?id=OHR.GwailorFort_ZH-CN6731607002_UHD.jpg&pid=hp&w=1920',
+  },
+  {
+    mainUrl: 'https://cn.bing.com/th?id=OHR.OliveGrove_ZH-CN7054006944_UHD.jpg&pid=hp&w=1920',
+    subUrl: 'https://cn.bing.com/th?id=OHR.OliveGrove_ZH-CN7054006944_UHD.jpg&pid=hp&w=1920',
+  },
+  {
+    mainUrl: 'https://cn.bing.com/th?id=OHR.TreviFountain_ZH-CN6892299520_UHD.jpg&pid=hp&w=1920',
+    subUrl: 'https://cn.bing.com/th?id=OHR.TreviFountain_ZH-CN6892299520_UHD.jpg&pid=hp&w=1920',
+  },
+])
+
+const sourceUrl = computed(() => _sourceUrl.value[currentDetectionIndex.value])
+const boundingCoordinates = computed({
+  get() {
+    return _boundingCoordinates.value[currentDetectionIndex.value]
+  },
+  set(val) {
+    ;(_boundingCoordinates.value[currentDetectionIndex.value] as any) = val
+  },
+})
+
+const originImgRef = ref<InstanceType<typeof TheCheckImg> | null>(null)
+const targetImgRef = ref<InstanceType<typeof TheCheckImg> | null>(null)
 
 /**
  * 放大焦距
@@ -83,6 +163,11 @@ const zoomTo = () => {
 const reset = () => {
   originImgRef.value?.reset?.()
   targetImgRef.value?.reset()
+}
+
+const setDrawType = (type: 'rect' | 'point' | 'line') => {
+  originImgRef.value?.setDrawType?.(type)
+  targetImgRef.value?.setDrawType(type)
 }
 </script>
 
