@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import 'viewerjs/dist/viewer.css'
 import Viewer from 'viewerjs'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useCreateDom } from '../hooks/useCreateDom'
 import { useViewerEvent } from '../hooks/useViewerEvent'
 import { useFormatDoodleList, type IDoodle } from '../hooks/useFormatDoodleList'
@@ -65,7 +65,14 @@ const { setDrawType } = useMouseEvent({
 })
 
 onMounted(() => {
+  window.addEventListener('keydown', onCtrlKeyDown)
+  window.addEventListener('keyup', onCtrlKeyUp)
   viewerIns.value = createViewer(props.url)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onCtrlKeyDown)
+  window.removeEventListener('keyup', onCtrlKeyUp)
 })
 
 watch(
@@ -166,6 +173,18 @@ function createViewer(url: string) {
   return OViewer
 }
 
+function onCtrlKeyDown(e: any) {
+  if (['ShiftLeft', 'ShiftRight'].includes(e.code)) {
+    photoWrapperRef.value?.classList.add('is-doodle')
+  }
+}
+
+function onCtrlKeyUp(e: any) {
+  if (['ShiftLeft', 'ShiftRight'].includes(e.code)) {
+    photoWrapperRef.value?.classList.remove('is-doodle')
+  }
+}
+
 /**
  * 暴露给父组件的方法
  */
@@ -189,6 +208,12 @@ defineExpose({
   pointer-events: none;
 }
 .is-doodle .doodle-container {
+  pointer-events: none;
+}
+.is-doodle .doodle-container .doodle-container-warp {
+  pointer-events: none;
+}
+.is-doodle .doodle-container .doodle-container-warp canvas {
   pointer-events: none;
 }
 </style>
