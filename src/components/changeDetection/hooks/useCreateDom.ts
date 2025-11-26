@@ -119,19 +119,46 @@ export const useCreateDom = (data: {
    * image 放大/缩小
    */
   function adjustDoodle(doodle: IFormatDoodle, dom: HTMLDivElement) {
-    const { x1, y1, x2, y2, color } = doodle
-    const width = Math.abs(x2 - x1)
-    const height = Math.abs(y2 - y1)
-    const marginTop = Math.min(y1, y2)
-    const marginLeft = Math.min(x1, x2)
-    dom!.style.cssText = `
+    const { x1, y1, x2, y2, color, type } = doodle
+    const minY = Math.min(y1, y2)
+    const minX = Math.min(x1, x2)
+    const maxY = Math.max(y1, y2)
+    const maxX = Math.max(x1, x2)
+    if (type === 'rect') {
+      const width = Math.abs(x2 - x1)
+      const height = Math.abs(y2 - y1)
+      dom!.style.cssText = `
           position: absolute;
-          margin-top: ${marginTop}px;
-          margin-left: ${marginLeft}px;
+          margin-top: ${minY}px;
+          margin-left: ${minX}px;
           width: ${width}px;
           height: ${height}px;
           border: 3px solid ${color};
         `
+    }
+
+    if (type === 'line') {
+      let width = 0
+      if (x1 === x2) width = Math.abs(y1 - y2)
+      if (y1 === y2) width = Math.abs(x1 - x2)
+      else {
+        width = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
+      }
+
+      let angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI
+      if (angle < 0) angle += 360
+
+      dom!.style.cssText = `
+          position: absolute;
+          margin-top: ${y1}px;
+          margin-left: ${x1}px;
+          width: ${width}px;
+          height: 3px;
+          transform: rotate(${angle}deg);
+          transform-origin: left top;
+          background: ${color};
+        `
+    }
   }
 
   /**

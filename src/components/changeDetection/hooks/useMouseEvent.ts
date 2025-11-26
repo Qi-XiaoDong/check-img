@@ -1,10 +1,18 @@
 import { ref } from 'vue'
 
+export type TDrawType = 'rect' | 'point' | 'line'
 /**
  * 鼠标绘制图形事件
  */
 export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
   const { dom, setDoodleList } = data
+
+  let canvasDom: any = null
+
+  let ctx: any = null
+
+  // 绘制图形的类别 矩形 线形 点
+  const drawType = ref<TDrawType>('rect')
 
   let doodle = {
     x1: 0,
@@ -12,14 +20,9 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
     x2: 0,
     y2: 0,
     color: 'blue',
+    type: drawType.value,
   }
 
-  let canvasDom: any = null
-
-  let ctx: any = null
-
-  // 绘制图形的类别 矩形 线形 点
-  const drawType = ref<'rect' | 'point' | 'line'>('rect')
   /**
    * 创建canvas用于画图
    */
@@ -66,7 +69,7 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
     doodle.y1 = e.clientY - rect.top
     doodle.x2 = doodle.x1
     doodle.y2 = doodle.y1
-
+    doodle.type = drawType.value
     // 设置画笔样式
     ctx!.strokeStyle = 'blue' // 矩形边框颜色
     ctx!.lineWidth = 2 // 边框宽度
@@ -81,7 +84,7 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
   function domMouseUp(e: any) {
     setDoodleList(doodle)
     deleteCanvas(dom)
-    doodle = { x1: 0, y1: 0, x2: 0, y2: 0, color: 'blue' }
+    doodle = { x1: 0, y1: 0, x2: 0, y2: 0, color: 'blue', type: drawType.value }
     dom.style.cursor = 'default'
     dom.removeEventListener('mouseup', domMouseUp)
     dom.removeEventListener('mousemove', domMouseMove)
@@ -142,6 +145,6 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
   }
 
   return {
-    setDrawType: (type: 'rect' | 'point' | 'line') => (drawType.value = type),
+    setDrawType: (type: TDrawType) => (drawType.value = type),
   }
 }

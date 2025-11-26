@@ -1,10 +1,12 @@
 import { readonly, watchEffect, type Ref, computed } from 'vue'
+import type { TDrawType } from './useMouseEvent'
 
 export interface IDoodle {
   leftX: number
   leftY: number
   rightX: number
   rightY: number
+  labelType: string
   labelColor: string
   labelName: string
 }
@@ -18,6 +20,7 @@ export interface IFormatDoodle {
   originY1: number
   originX2: number
   originY2: number
+  type: TDrawType
   color: string
   name: string
 }
@@ -40,6 +43,7 @@ export const useFormatDoodleList = (zoom: Ref<number>, originDoodleList: Ref<IDo
           y2: item.rightY * zoom.value,
           color: item.labelColor,
           name: item.labelName,
+          type: item.labelType || 'rect',
         } as IFormatDoodle
       })
     },
@@ -52,6 +56,7 @@ export const useFormatDoodleList = (zoom: Ref<number>, originDoodleList: Ref<IDo
           rightY: doodle.originY2,
           labelColor: doodle.color,
           labelName: doodle.name,
+          labelType: doodle.type,
         }
       })
     },
@@ -71,13 +76,10 @@ export const useFormatDoodleList = (zoom: Ref<number>, originDoodleList: Ref<IDo
         originY2: doodle.y2 / zoom.value,
         color: doodle.color,
         name: doodle.name,
+        type: doodle.type,
       },
     ]
   }
-
-  // watchEffect(() => {
-  //   console.log(doodleList.value)
-  // })
 
   return {
     doodleList: readonly(doodleList),
