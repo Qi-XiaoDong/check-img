@@ -57,6 +57,7 @@ export const useFormatDoodleList = (zoom: Ref<number>, originDoodleList: Ref<IDo
     },
   })
   const setDoodleList = (doodle: IFormatDoodle) => {
+    console.log(doodle)
     doodleList.value = [
       ...doodleList.value,
       {

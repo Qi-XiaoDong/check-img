@@ -64,6 +64,8 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
     const rect = canvasDom.getBoundingClientRect()
     doodle.x1 = e.clientX - rect.left
     doodle.y1 = e.clientY - rect.top
+    doodle.x2 = doodle.x1
+    doodle.y2 = doodle.y1
 
     // 设置画笔样式
     ctx!.strokeStyle = 'blue' // 矩形边框颜色
@@ -114,7 +116,10 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
     const width = Math.abs(doodle.x2 - doodle.x1)
     const height = Math.abs(doodle.y2 - doodle.y1)
 
-    ctx.rect(doodle.x1, doodle.y1, width, height)
+    const startX = Math.min(doodle.x1, doodle.x2)
+    const startY = Math.min(doodle.y1, doodle.y2)
+
+    ctx.rect(startX, startY, width, height)
 
     // c. 描边矩形
     ctx.stroke()

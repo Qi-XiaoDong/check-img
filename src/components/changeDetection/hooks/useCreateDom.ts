@@ -122,10 +122,12 @@ export const useCreateDom = (data: {
     const { x1, y1, x2, y2, color } = doodle
     const width = Math.abs(x2 - x1)
     const height = Math.abs(y2 - y1)
+    const marginTop = Math.min(y1, y2)
+    const marginLeft = Math.min(x1, x2)
     dom!.style.cssText = `
           position: absolute;
-          margin-top: ${y1}px;
-          margin-left: ${x1}px;
+          margin-top: ${marginTop}px;
+          margin-left: ${marginLeft}px;
           width: ${width}px;
           height: ${height}px;
           border: 3px solid ${color};
