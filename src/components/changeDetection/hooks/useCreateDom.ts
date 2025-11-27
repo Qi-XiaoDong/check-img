@@ -165,13 +165,11 @@ export const useCreateDom = (data: {
     //       position: absolute;
     //       margin-top: ${y1}px;
     //       margin-left: ${x1}px;
-    //       transform: translate(-50%, -50%) rotate(45deg);
-    //       width: 10px;
-    //       height: 10px;
+    //       transform: translate(-50%, -50%) rotateZ(45deg)skew(30deg,30deg);
+    //       width: 40px;
+    //       height: 40px;
     //       background: transparent;
     //       border: 3px solid ${color};
-    //       clipPath: clipPath
-
     //     `
     // }
   }
