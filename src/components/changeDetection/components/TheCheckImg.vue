@@ -15,6 +15,7 @@ import { useCreateDom } from '../hooks/useCreateDom'
 import { useViewerEvent } from '../hooks/useViewerEvent'
 import { useFormatDoodleList, type IDoodle } from '../hooks/useFormatDoodleList'
 import { useMouseEvent } from '../hooks/useMouseEvent'
+import { emitter } from '../core/mitt'
 
 const props = defineProps<{
   url: string
@@ -38,15 +39,14 @@ const viewerIns = ref<Viewer | null>(null)
 
 const imageIns = ref<HTMLImageElement | null>(null)
 
-// 变焦倍数
-const zoomNum = ref(1)
-
 const isMovable = ref(true)
 
 // 触发器
 const photoWrapperRef = ref<HTMLDivElement | null>(null)
 
-const { defaultZoom, destroyViewer, zoom, rotate, zoomTo, reset } = useViewerEvent(viewerIns as any)
+const { moveXY, zoomNum, defaultZoom, destroyViewer, zoom, rotate, zoomTo, reset } = useViewerEvent(
+  viewerIns as any,
+)
 
 const { doodleList, setDoodleList } = useFormatDoodleList(
   zoomNum as any,
@@ -165,9 +165,24 @@ function createViewer(url: string) {
 
         if (e.detail.y > e.detail.oldY && e.detail.y > 0) e.preventDefault()
       }
+      moveXY.value = {
+        x: e.detail.x,
+        y: e.detail.y,
+      }
+      emitter.emit('viewer-move', {
+        viewerIns: viewerIns.value!,
+        moveData: {
+          x: e.detail.x,
+          y: e.detail.y,
+        },
+      })
     },
     zoom: (e: any) => {
       zoomNum.value = e.detail.ratio
+      emitter.emit('viewer-zoom', {
+        viewerIns: viewerIns.value!,
+        zoomNum: e.detail.ratio,
+      })
     },
   })
 

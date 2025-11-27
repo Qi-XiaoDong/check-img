@@ -24,6 +24,7 @@
         <button @click="reset">重置</button>
         <button @click="setDrawType('rect')">矩形</button>
         <button @click="setDrawType('line')">线</button>
+        <!-- <button @click="setDrawType('point')">点</button> -->
         <button @click="currentDetectionIndex = ++currentDetectionIndex % 3">下一张</button>
         <button @click="setAllowDraw">编辑</button>
       </div>

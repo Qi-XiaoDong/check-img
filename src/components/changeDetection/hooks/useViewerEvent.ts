@@ -1,4 +1,6 @@
 import { ref, unref, type Ref } from 'vue'
+import { emitter } from '../core/mitt'
+import Viewer from 'viewerjs'
 
 /**
  *  图片事件处理
@@ -7,6 +9,14 @@ import { ref, unref, type Ref } from 'vue'
  */
 export const useViewerEvent = (viewerIns: Ref<Viewer>) => {
   const defaultZoom = ref(0)
+
+  // 变焦倍数
+  const zoomNum = ref(1)
+
+  const moveXY = ref({
+    x: 0,
+    y: 0,
+  })
   const destroyViewer = () => {
     viewerIns.value?.destroy()
   }
@@ -28,6 +38,17 @@ export const useViewerEvent = (viewerIns: Ref<Viewer>) => {
     viewerIns.value?.zoomTo(unref(defaultZoom))
   }
 
+  emitter.on('viewer-move', (payload) => {
+    if (viewerIns.value === payload.viewerIns) return
+    if (payload.moveData.x === moveXY.value.x && payload.moveData.y === moveXY.value.y) return
+    viewerIns.value.moveTo(payload.moveData.x, payload.moveData.y)
+  })
+
+  emitter.on('viewer-zoom', (payload) => {
+    if (viewerIns.value === payload.viewerIns) return
+    if (zoomNum.value !== payload.zoomNum) viewerIns.value.zoomTo(payload.zoomNum)
+  })
+
   return {
     defaultZoom,
     destroyViewer,
@@ -35,5 +56,7 @@ export const useViewerEvent = (viewerIns: Ref<Viewer>) => {
     rotate,
     zoomTo,
     reset,
+    zoomNum,
+    moveXY,
   }
 }

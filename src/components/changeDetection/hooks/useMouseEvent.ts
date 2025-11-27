@@ -73,6 +73,7 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
    * @param e
    */
   function domMouseDown(e: any) {
+    dom.addEventListener('mouseup', domMouseUp)
     createCanvas(dom)
     dom.style.cursor = 'crosshair'
     // 获取鼠标相对于 Canvas 的坐标
@@ -85,7 +86,11 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
     // 设置画笔样式
     ctx!.strokeStyle = 'blue' // 矩形边框颜色
     ctx!.lineWidth = 2 // 边框宽度
-    dom.addEventListener('mouseup', domMouseUp)
+
+    if (drawType.value === 'point') {
+      domMousePointDown()
+      return
+    }
     dom.addEventListener('mousemove', domMouseMove)
   }
 
@@ -160,5 +165,29 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
     setDrawType: (type: TDrawType) => (drawType.value = type),
     changeAllowDraw: () => (allowDraw.value = !allowDraw.value),
     allowDraw: readonly(allowDraw),
+  }
+
+  /**
+   * 鼠标移动绘制菱形
+   */
+
+  function domMousePointDown() {
+    ctx.clearRect(0, 0, canvasDom.width, canvasDom.height)
+    ctx.beginPath()
+
+    // 以doodle.x1, doodle.y1为中心 画一个菱形
+    // 开始路径
+    ctx.beginPath()
+    // 1. 上顶点：x不变，y - halfHeight
+    ctx.moveTo(doodle.x1, doodle.y1 - 20)
+    // 2. 右顶点：x + halfWidth，y不变
+    ctx.lineTo(doodle.x1 + 10, doodle.y1)
+    // 3. 下顶点：x不变，y + halfHeight
+    ctx.lineTo(doodle.x1, doodle.y1 + 20)
+    // 4. 左顶点：x - halfWidth，y不变
+    ctx.lineTo(doodle.x1 - 10, doodle.y1)
+    // 闭合路径（回到上顶点）
+    ctx.closePath()
+    ctx.stroke() // 描边
   }
 }

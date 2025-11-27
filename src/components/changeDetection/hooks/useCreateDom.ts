@@ -159,6 +159,21 @@ export const useCreateDom = (data: {
           background: ${color};
         `
     }
+
+    // if (type === 'point') {
+    //   dom!.style.cssText = `
+    //       position: absolute;
+    //       margin-top: ${y1}px;
+    //       margin-left: ${x1}px;
+    //       transform: translate(-50%, -50%) rotate(45deg);
+    //       width: 10px;
+    //       height: 10px;
+    //       background: transparent;
+    //       border: 3px solid ${color};
+    //       clipPath: clipPath
+
+    //     `
+    // }
   }
 
   /**
