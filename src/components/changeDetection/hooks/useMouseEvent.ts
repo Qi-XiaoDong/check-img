@@ -1,21 +1,21 @@
-import { readonly, ref, watch } from 'vue'
+import { watch, type Ref } from 'vue'
+import type { TDrawType } from './useDrawCtrl'
+import { emitter } from '../core/mitt'
 
-export type TDrawType = 'rect' | 'point' | 'line'
 /**
  * 鼠标绘制图形事件
  */
-export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
-  const { dom, setDoodleList } = data
+export const useMouseEvent = (data: {
+  dom: any
+  setDoodleList: any
+  drawType: Ref<TDrawType>
+  allowDraw: Ref<boolean>
+}) => {
+  const { dom, setDoodleList, drawType, allowDraw } = data
 
   let canvasDom: any = null
 
   let ctx: any = null
-
-  // 绘制图形的类别 矩形 线形 点
-  const drawType = ref<TDrawType>('rect')
-
-  // 是否允许绘制
-  const allowDraw = ref(false)
 
   let doodle = {
     x1: 0,
@@ -73,6 +73,7 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
    * @param e
    */
   function domMouseDown(e: any) {
+    console.log('鼠标按下')
     dom.addEventListener('mouseup', domMouseUp)
     createCanvas(dom)
     dom.style.cursor = 'crosshair'
@@ -98,13 +99,18 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
    *鼠标抬起
    * @param e
    */
-  function domMouseUp(e: any) {
-    setDoodleList(doodle)
+  async function domMouseUp(e: any) {
+    const _doodle = await setDoodleList(doodle)
+
     deleteCanvas(dom)
     doodle = { x1: 0, y1: 0, x2: 0, y2: 0, color: 'blue', type: drawType.value }
     dom.style.cursor = 'default'
     dom.removeEventListener('mouseup', domMouseUp)
     dom.removeEventListener('mousemove', domMouseMove)
+    emitter.emit('open-check-style', {
+      viewerIns: '' as unknown as any,
+      options: { doodle: _doodle },
+    })
   }
   /**
    *鼠标移动
@@ -159,12 +165,6 @@ export const useMouseEvent = (data: { dom: any; setDoodleList: any }) => {
     ctx.moveTo(doodle.x1, doodle.y1)
     ctx.lineTo(doodle.x2, doodle.y2)
     ctx.stroke()
-  }
-
-  return {
-    setDrawType: (type: TDrawType) => (drawType.value = type),
-    changeAllowDraw: () => (allowDraw.value = !allowDraw.value),
-    allowDraw: readonly(allowDraw),
   }
 
   /**

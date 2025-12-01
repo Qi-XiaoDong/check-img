@@ -2,7 +2,7 @@
   <div
     ref="photoWrapperRef"
     class="photo-wrapper"
-    :class="{ 'is-doodle': !allowDraw }"
+    :class="{ 'is-doodle': allViewerOp }"
     style="flex: 1; height: 100%; border: 1px solid red"
   />
 </template>
@@ -16,6 +16,8 @@ import { useViewerEvent } from '../hooks/useViewerEvent'
 import { useFormatDoodleList, type IDoodle } from '../hooks/useFormatDoodleList'
 import { useMouseEvent } from '../hooks/useMouseEvent'
 import { emitter } from '../core/mitt'
+import { useDrawCtrl } from '../hooks/useDrawCtrl'
+import { checkStyle } from './CheckEditStyle'
 
 const props = defineProps<{
   url: string
@@ -48,21 +50,41 @@ const { moveXY, zoomNum, defaultZoom, destroyViewer, zoom, rotate, zoomTo, reset
   viewerIns as any,
 )
 
+const { setDrawType, changeAllowDraw, allowDraw, drawType, allViewerOp, setIsEdit } = useDrawCtrl()
+
 const { doodleList, setDoodleList } = useFormatDoodleList(
   zoomNum as any,
   _boundingCoordinates as any,
 )
 
-const { doodleContainerElement, clearDraWRenderElement } = useCreateDom({
-  imageIns: imageIns as any,
-  viewerIns: viewerIns as any,
-  photoWrapperRef: photoWrapperRef as any,
-  doodleList: doodleList as any,
-})
+const { doodleContainerElement, doodleContainerWarpElement, clearDraWRenderElement } = useCreateDom(
+  {
+    imageIns: imageIns as any,
+    viewerIns: viewerIns as any,
+    photoWrapperRef: photoWrapperRef as any,
+    doodleList: doodleList as any,
+  },
+)
 
-const { setDrawType, changeAllowDraw, allowDraw } = useMouseEvent({
+useMouseEvent({
   dom: doodleContainerElement,
   setDoodleList,
+  drawType: drawType,
+  allowDraw: allowDraw,
+})
+
+/**
+ * 打开编辑面板
+ */
+emitter.on('open-check-style', (data) => {
+  const { doodle } = data.options
+  checkStyle.open({
+    doodle,
+    appendContainerHtml: doodleContainerWarpElement,
+    openBefore: () => setIsEdit(true),
+    closeBefore: () => setIsEdit(false),
+    allowMultiple: false,
+  })
 })
 
 onMounted(() => {
@@ -103,6 +125,30 @@ function createViewer(url: string) {
     title: false,
     backdrop: false,
     navbar: false,
+    // ready(e) {
+    //   // Viewer 初始化完成后，覆盖 zoom 方法
+    //   const originalZoom = OViewer.zoom // 保存原生 zoom 方法
+    //   OViewer.zoom = function (percent, event) {
+    //     // 1. 计算容器/图片的中心坐标
+    //     const viewerEl = this.viewerElement // Viewer 容器元素
+    //     const imageEl = this.imageData.element // 图片元素
+
+    //     // 容器的几何中心（相对于视口）
+    //     const rect = viewerEl.getBoundingClientRect()
+    //     const centerX = rect.left + rect.width / 2
+    //     const centerY = rect.top + rect.height / 2
+
+    //     // 2. 构造伪造的事件对象，强制中心坐标
+    //     const fakeEvent = {
+    //       clientX: centerX,
+    //       clientY: centerY,
+    //       target: event?.target || imageEl, // 保留目标元素，避免报错
+    //     }
+
+    //     // 3. 调用原生 zoom 方法，传入中心坐标的事件
+    //     return originalZoom.call(this, percent, fakeEvent)
+    //   }
+    // },
     viewed(e) {
       const image = e.detail.image
       imageIns.value = image

@@ -2,6 +2,7 @@
 import ChangeDetection from '@/components/changeDetection/ChangeDetection.vue'
 import checkImg from '@/assets/image/check.png?url'
 import { ref } from 'vue'
+// import CheckEditStyle from './components/changeDetection/components/CheckEditStyle.vue'
 const boundingCoordinates = ref([])
 </script>
 
@@ -10,6 +11,7 @@ const boundingCoordinates = ref([])
     :source-url="[{ mainUrl: checkImg, subUrl: checkImg }]"
     v-model:bounding-coordinates="boundingCoordinates"
   />
+  <!-- <CheckEditStyle /> -->
 </template>
 
 <style>

@@ -1,6 +1,8 @@
 import { type Ref, ref, watch } from 'vue'
 import Viewer from 'viewerjs'
 import type { IFormatDoodle } from './useFormatDoodleList'
+import { emitter } from '../core/mitt'
+
 /**
  * 在图片上元素
  * @param viewerIns
@@ -110,7 +112,17 @@ export const useCreateDom = (data: {
       dom = document.createElement('div')
       dom.setAttribute('data-x1', doodle.originX1.toString())
       dom.setAttribute('data-y1', doodle.originY1.toString())
+      dom.setAttribute('data-id', doodle.id?.toString()!)
+
       doodleContainerWarpElement.appendChild(dom)
+      dom.addEventListener('click', function (event) {
+        // 阻止冒泡
+        event.stopPropagation()
+        emitter.emit('open-check-style', {
+          viewerIns: viewerIns.value,
+          options: { doodle },
+        })
+      })
     }
     adjustDoodle(doodle, dom)
   }
@@ -122,18 +134,19 @@ export const useCreateDom = (data: {
     const { x1, y1, x2, y2, color, type } = doodle
     const minY = Math.min(y1, y2)
     const minX = Math.min(x1, x2)
-    const maxY = Math.max(y1, y2)
-    const maxX = Math.max(x1, x2)
     if (type === 'rect') {
       const width = Math.abs(x2 - x1)
       const height = Math.abs(y2 - y1)
       dom!.style.cssText = `
           position: absolute;
-          margin-top: ${minY}px;
-          margin-left: ${minX}px;
+          // margin-top: ${minY}px;
+          // margin-left: ${minX}px;
+          top: ${minY}px;
+          left: ${minX}px;
           width: ${width}px;
           height: ${height}px;
           border: 3px solid ${color};
+          z-index: 99;
         `
     }
 
@@ -150,28 +163,18 @@ export const useCreateDom = (data: {
 
       dom!.style.cssText = `
           position: absolute;
-          margin-top: ${y1}px;
-          margin-left: ${x1}px;
+          // margin-top: ${y1}px;
+          // margin-left: ${x1}px;
+          top: ${minY}px;
+          left: ${minX}px;
           width: ${width}px;
           height: 3px;
           transform: rotate(${angle}deg);
           transform-origin: left top;
           background: ${color};
+           z-index: 99;
         `
     }
-
-    // if (type === 'point') {
-    //   dom!.style.cssText = `
-    //       position: absolute;
-    //       margin-top: ${y1}px;
-    //       margin-left: ${x1}px;
-    //       transform: translate(-50%, -50%) rotateZ(45deg)skew(30deg,30deg);
-    //       width: 40px;
-    //       height: 40px;
-    //       background: transparent;
-    //       border: 3px solid ${color};
-    //     `
-    // }
   }
 
   /**
@@ -184,5 +187,6 @@ export const useCreateDom = (data: {
   return {
     doodleContainerElement,
     clearDraWRenderElement,
+    doodleContainerWarpElement,
   }
 }

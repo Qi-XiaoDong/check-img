@@ -1,7 +1,8 @@
-import { readonly, watchEffect, type Ref, computed } from 'vue'
-import type { TDrawType } from './useMouseEvent'
-
+import { readonly, type Ref, computed, watchEffect } from 'vue'
+import type { TDrawType } from './useDrawCtrl'
+import { v4 as uuidV4 } from 'uuid'
 export interface IDoodle {
+  id: string
   leftX: number
   leftY: number
   rightX: number
@@ -9,9 +10,12 @@ export interface IDoodle {
   labelType: string
   labelColor: string
   labelName: string
+  isNew?: boolean
 }
 
 export interface IFormatDoodle {
+  id: string
+  isNew?: boolean
   x1: number
   y1: number
   x2: number
@@ -44,12 +48,15 @@ export const useFormatDoodleList = (zoom: Ref<number>, originDoodleList: Ref<IDo
           color: item.labelColor,
           name: item.labelName,
           type: item.labelType || 'rect',
+          id: item.id,
+          isNew: item.isNew,
         } as IFormatDoodle
       })
     },
     set(newDoodleList: IFormatDoodle[]) {
       originDoodleList.value = newDoodleList.map((doodle) => {
         return {
+          id: doodle.id,
           leftX: doodle.originX1,
           leftY: doodle.originY1,
           rightX: doodle.originX2,
@@ -57,28 +64,44 @@ export const useFormatDoodleList = (zoom: Ref<number>, originDoodleList: Ref<IDo
           labelColor: doodle.color,
           labelName: doodle.name,
           labelType: doodle.type,
+          isNew: doodle.isNew,
         }
       })
     },
   })
-  const setDoodleList = (doodle: IFormatDoodle) => {
-    console.log(doodle)
-    doodleList.value = [
-      ...doodleList.value,
-      {
-        x1: doodle.x1 / zoom.value,
-        y1: doodle.y1 / zoom.value,
-        x2: doodle.x2 / zoom.value,
-        y2: doodle.y2 / zoom.value,
-        originX1: doodle.x1 / zoom.value,
-        originY1: doodle.y1 / zoom.value,
-        originX2: doodle.x2 / zoom.value,
-        originY2: doodle.y2 / zoom.value,
-        color: doodle.color,
-        name: doodle.name,
-        type: doodle.type,
-      },
-    ]
+  const setDoodleList = async (doodle: IFormatDoodle) => {
+    const _doodle: IFormatDoodle = {
+      id: doodle.id,
+      x1: doodle.x1 / zoom.value,
+      y1: doodle.y1 / zoom.value,
+      x2: doodle.x2 / zoom.value,
+      y2: doodle.y2 / zoom.value,
+      originX1: doodle.x1 / zoom.value,
+      originY1: doodle.y1 / zoom.value,
+      originX2: doodle.x2 / zoom.value,
+      originY2: doodle.y2 / zoom.value,
+      color: doodle.color,
+      name: doodle.name,
+      type: doodle.type,
+    }
+
+    // 新增
+    if (!_doodle.id) {
+      // 请求Id
+      doodle.id = uuidV4()
+      doodleList.value = [...doodleList.value, { ..._doodle, isNew: true }]
+    } else {
+      const index = doodleList.value.findIndex((item) => item.id === doodle.id)!
+      doodleList.value.splice(index, 1, { ...doodle })
+    }
+
+    return {
+      ..._doodle,
+      x1: _doodle.originX1 * zoom.value,
+      y1: _doodle.originY1 * zoom.value,
+      x2: _doodle.originX2 * zoom.value,
+      y2: _doodle.originY2 * zoom.value,
+    }
   }
 
   return {
