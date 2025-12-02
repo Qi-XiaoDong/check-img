@@ -1,11 +1,11 @@
 <template>
-  <div class="check-style-container" ref="styleContainerRef">
+  <div ref="styleContainerRef" class="check-style-container">
     <div class="input-wrapper">
       <input
         id="inputValue"
-        @input="handlerInput"
         :value="inputValue"
         placeholder="请输入标签，按回车确认"
+        @input="handlerInput"
         @keydown.enter="handlerOk"
         @click.stop
       />
@@ -13,31 +13,28 @@
         <i class="iconfont icon-check" @click="handlerOk" />
         <i class="iconfont icon-quxiao" @click="handlerCancel" />
         <i class="iconfont icon-shanchu" @click="handlerDelete" />
-        <i class="iconfont icon-tiaosepan" @click="handlerSelect" />
+        <i class="iconfont icon-tiaosepan" @click="paletteShow = !paletteShow" />
       </div>
     </div>
-    <div class="style-palette" v-show="paletteShow">
+    <div v-show="paletteShow" class="style-palette">
       <div
-        class="palette-item"
-        :class="{ active: item.color === _selectPaletteColor }"
         v-for="item in paletteList"
         :key="item.color"
+        :class="{ active: item.color === _selectPaletteColor }"
         :style="{
           background: item.color,
         }"
-        @click="
-          () => {
-            _selectPaletteColor = item.color
-          }
-        "
+        class="palette-item"
+        @click="() => handlerSelect(item.color)"
       ></div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue'
 import type { IFormatDoodle } from '../hooks/useFormatDoodleList'
+
 const props = withDefaults(
   defineProps<{
     paletteList?: {
@@ -69,8 +66,8 @@ const props = withDefaults(
 )
 
 const emits = defineEmits<{
-  (e: 'palette-ok', value: any): void
-  (e: 'delete'): void
+  (e: 'palette-ok', value: IFormatDoodle): void
+  (e: 'delete', value: string): void
   // 点击其他地方调用关闭
   (e: 'close'): void
   (e: 'open-before'): void
@@ -81,21 +78,38 @@ const styleContainerRef = ref<HTMLDivElement>()
 
 const inputValue = ref(props.doodle.name)
 
-const _selectPaletteColor = ref(props.doodle.color || '#438FFF')
+const innerDoodle = ref(props.doodle)
+
+watch(
+  () => props.doodle,
+  (newDoodle) => {
+    innerDoodle.value = newDoodle
+  },
+)
+
+// 当前选中的调色盘
+const _selectPaletteColor = computed(() => innerDoodle.value.color || '#438FFF')
 
 const paletteShow = ref(false)
 
-const topPx = computed(() => `${props.top || Math.max(props.doodle.y1!, props.doodle.y2!) + 5}px `)
+const topPx = computed(
+  () => `${props.top || Math.max(innerDoodle.value.y1!, innerDoodle.value.y2!) + 5}px `,
+)
 
-const leftPx = computed(() => `${props.left || Math.min(props.doodle.x1!, props.doodle.x2!)}px`)
+const leftPx = computed(
+  () => `${props.left || Math.min(innerDoodle.value.x1!, innerDoodle.value.x2!)}px`,
+)
 
 watchEffect(() => {
-  console.log('watchEffect', props.doodle)
+  console.log('props.doodle', props.doodle)
+})
+
+watchEffect(() => {
+  console.log('innerDoodle.value', innerDoodle.value)
 })
 
 onMounted(() => {
   emits('open-before')
-
   styleContainerRef.value?.addEventListener('mousedown', (e) => {
     e.stopPropagation()
   })
@@ -110,9 +124,9 @@ const handlerInput = (e: any) => {
 }
 const handlerOk = () => {
   emits('palette-ok', {
-    ...props.doodle,
+    ...innerDoodle.value,
     name: inputValue.value,
-  })
+  } as IFormatDoodle)
   emits('close')
 }
 
@@ -121,30 +135,31 @@ const handlerCancel = () => {
 }
 
 const handlerDelete = () => {
-  emits('delete')
+  emits('delete', innerDoodle.value.id!)
   emits('close')
 }
 
-const handlerSelect = () => {
-  // emits('palette-ok', {
-  //   ...props.doodle,
-  //   color: _selectPaletteColor.value,
-  // })
-  paletteShow.value = !paletteShow.value
+const handlerSelect = (color: string) => {
+  emits('palette-ok', {
+    ...innerDoodle.value,
+    color: color,
+  } as IFormatDoodle)
 }
 
 defineExpose({
   close: handlerCancel,
+  update: (value: IFormatDoodle) => {
+    innerDoodle.value = value
+  },
 })
 </script>
 
-<style lang="scss" scope>
+<style lang="scss" scoped>
 .check-style-container {
   position: absolute;
   top: v-bind(topPx);
   left: v-bind(leftPx);
   z-index: 100;
-  pointer-events: auto;
 }
 
 .input-wrapper {

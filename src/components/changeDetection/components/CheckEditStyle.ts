@@ -2,6 +2,7 @@ import { createVNode, render, type VNode } from 'vue'
 import checkEditStyle from './CheckEditStyle.vue'
 import { v4 as uuidV4 } from 'uuid'
 import type { IFormatDoodle } from '../hooks/useFormatDoodleList'
+
 // 消息配置项（与组件Props对齐）
 export interface checkEditStyleOptions {
   paletteList?: {
@@ -13,14 +14,17 @@ export interface checkEditStyleOptions {
   appendContainerHtml: HTMLElement
   openBefore?: () => void
   closeBefore?: () => void
+  onPaletteOk: (doodle: IFormatDoodle) => void
+  onDelete: (id: string) => void
   allowMultiple?: boolean // 允许多个实例存在，false 则创建之前清空其他实例
 }
 
 const checkEditStyleInstances: Map<string, { node: VNode; clearNode: () => void }> = new Map()
+
 class CheckStyle {
   constructor() {}
 
-  open(options: checkEditStyleOptions): { close: () => void } {
+  open(options: checkEditStyleOptions): { close: () => void; update?: (data: any) => void } {
     // 定义关闭回调（销毁实例 + 重新计算剩余消息的偏移）
     const onClose = () => {
       // 销毁组件
@@ -36,6 +40,7 @@ class CheckStyle {
       appendContainerHtml: _appendContainerHtml,
       openBefore: onOpenBefore,
       closeBefore: onCloseBefore,
+      doodle,
       ...resetOp
     } = options
 
@@ -51,6 +56,7 @@ class CheckStyle {
       onOpenBefore,
       onCloseBefore,
       onClose,
+      doodle: doodle,
     })
 
     // 创建挂载容器
@@ -76,8 +82,17 @@ class CheckStyle {
       }
     }
 
+    function update(data: IFormatDoodle) {
+      const component = vNode.component
+      if (component) {
+        // 调用组件内的close方法
+        ;(component.exposed as { update: (data: any) => void })?.update?.(data)
+      }
+    }
+
     return {
       close,
+      update,
     }
   }
 

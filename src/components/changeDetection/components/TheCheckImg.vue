@@ -1,13 +1,13 @@
 <template>
   <div
     ref="photoWrapperRef"
-    class="photo-wrapper"
     :class="{ 'is-doodle': allViewerOp }"
+    class="photo-wrapper"
     style="flex: 1; height: 100%; border: 1px solid red"
   />
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import 'viewerjs/dist/viewer.css'
 import Viewer from 'viewerjs'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -18,14 +18,20 @@ import { useMouseEvent } from '../hooks/useMouseEvent'
 import { emitter } from '../core/mitt'
 import { useDrawCtrl } from '../hooks/useDrawCtrl'
 import { checkStyle } from './CheckEditStyle'
+import { v4 as uuidV4 } from 'uuid'
 
 const props = defineProps<{
   url: string
   boundingCoordinates?: IDoodle[]
+  detectId: string
+  detectTarget: string
 }>()
 
 const emits = defineEmits<{
   (e: 'update:boundingCoordinates', data: any): void
+  (e: 'addDetectTargetApi', data: any): void
+  (e: 'updateDetectTargetApi', data: any): void
+  (e: 'deleteDetectTargetApi', data: string[]): void
 }>()
 
 const _boundingCoordinates = computed({
@@ -62,6 +68,7 @@ const {
 
 const { doodleList, setDoodleList } = useFormatDoodleList(
   zoomNum as any,
+  viewerIns as any,
   _boundingCoordinates as any,
 )
 
@@ -89,12 +96,19 @@ useMouseEvent({
 emitter.on('open-check-style', (data) => {
   const { doodleId } = data.options
   if (data.viewerIns !== viewerIns.value) return
-  checkStyle.open({
+  const { update } = checkStyle.open({
     doodle: doodleList.value.find((item) => item.id === doodleId) || ({} as IFormatDoodle),
     appendContainerHtml: doodleContainerWarpElement,
     paletteList: paletteList,
-    openBefore: () => {},
-    closeBefore: () => {},
+    onDelete: (id: string) => {
+      // emits('deleteDetectTargetApi', { ids: [id] })
+    },
+    onPaletteOk: (options) => {
+      console.log(options, 'options')
+      setDoodleList(options)
+      update?.(options)
+      // emits('updateDetectTargetApi', options)
+    },
     allowMultiple: false,
   })
 })
@@ -103,6 +117,17 @@ emitter.on('open-check-style', (data) => {
  * 清空编辑面板
  */
 emitter.on('clear-check-style', () => checkStyle.clear())
+
+/**
+ * 添加检测目标
+ */
+
+emitter.on('add-detect-target', (data) => {
+  if (data.viewerIns !== viewerIns.value) return
+  setTimeout(() => {
+    data.callback(uuidV4())
+  }, 50)
+})
 
 onMounted(() => {
   window.addEventListener('keydown', onCtrlKeyDown)
@@ -303,11 +328,6 @@ defineExpose({
 }
 
 .is-doodle .doodle-container .doodle-container-warp canvas {
-  pointer-events: none;
-}
-
-.doodle-container-warp {
-  z-index: 2;
   pointer-events: none;
 }
 </style>
