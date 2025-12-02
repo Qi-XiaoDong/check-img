@@ -13,7 +13,7 @@ import Viewer from 'viewerjs'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useCreateDom } from '../hooks/useCreateDom'
 import { useViewerEvent } from '../hooks/useViewerEvent'
-import { useFormatDoodleList, type IDoodle } from '../hooks/useFormatDoodleList'
+import { useFormatDoodleList, type IDoodle, type IFormatDoodle } from '../hooks/useFormatDoodleList'
 import { useMouseEvent } from '../hooks/useMouseEvent'
 import { emitter } from '../core/mitt'
 import { useDrawCtrl } from '../hooks/useDrawCtrl'
@@ -50,7 +50,15 @@ const { moveXY, zoomNum, defaultZoom, destroyViewer, zoom, rotate, zoomTo, reset
   viewerIns as any,
 )
 
-const { setDrawType, changeAllowDraw, allowDraw, drawType, allViewerOp, setIsEdit } = useDrawCtrl()
+const {
+  setDrawType,
+  changeAllowDraw,
+  allowDraw,
+  drawType,
+  allViewerOp,
+  paletteList,
+  currentPaletteColor,
+} = useDrawCtrl()
 
 const { doodleList, setDoodleList } = useFormatDoodleList(
   zoomNum as any,
@@ -71,21 +79,30 @@ useMouseEvent({
   setDoodleList,
   drawType: drawType,
   allowDraw: allowDraw,
+  viewerIns: viewerIns as any,
+  paletteColor: currentPaletteColor,
 })
 
 /**
  * 打开编辑面板
  */
 emitter.on('open-check-style', (data) => {
-  const { doodle } = data.options
+  const { doodleId } = data.options
+  if (data.viewerIns !== viewerIns.value) return
   checkStyle.open({
-    doodle,
+    doodle: doodleList.value.find((item) => item.id === doodleId) || ({} as IFormatDoodle),
     appendContainerHtml: doodleContainerWarpElement,
-    openBefore: () => setIsEdit(true),
-    closeBefore: () => setIsEdit(false),
+    paletteList: paletteList,
+    openBefore: () => {},
+    closeBefore: () => {},
     allowMultiple: false,
   })
 })
+
+/**
+ * 清空编辑面板
+ */
+emitter.on('clear-check-style', () => checkStyle.clear())
 
 onMounted(() => {
   window.addEventListener('keydown', onCtrlKeyDown)
@@ -163,6 +180,7 @@ function createViewer(url: string) {
     },
     // 核心：move 事件中通过 margin 限制边界
     move: (e: any) => {
+      emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
       const viewerInstance = e.srcElement.viewer
       const imgElement = viewerInstance.image // 拿到实际显示的图片元素
       const container = photoWrapperRef.value!
@@ -224,11 +242,15 @@ function createViewer(url: string) {
       })
     },
     zoom: (e: any) => {
+      emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
       zoomNum.value = e.detail.ratio
       emitter.emit('viewer-zoom', {
         viewerIns: viewerIns.value!,
         zoomNum: e.detail.ratio,
       })
+    },
+    rotate(event) {
+      emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
     },
   })
 
@@ -266,16 +288,20 @@ defineExpose({
 .photo-wrapper {
   overflow: hidden;
 }
+
 .is-doodle .doodle-mask {
   display: none;
   pointer-events: none;
 }
+
 .is-doodle .doodle-container {
   pointer-events: none;
 }
+
 .is-doodle .doodle-container-warp {
   pointer-events: none;
 }
+
 .is-doodle .doodle-container .doodle-container-warp canvas {
   pointer-events: none;
 }

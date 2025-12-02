@@ -1,4 +1,4 @@
-import { readonly, type Ref, computed, watchEffect } from 'vue'
+import { readonly, type Ref, computed } from 'vue'
 import type { TDrawType } from './useDrawCtrl'
 import { v4 as uuidV4 } from 'uuid'
 export interface IDoodle {
@@ -10,12 +10,10 @@ export interface IDoodle {
   labelType: string
   labelColor: string
   labelName: string
-  isNew?: boolean
 }
 
 export interface IFormatDoodle {
   id: string
-  isNew?: boolean
   x1: number
   y1: number
   x2: number
@@ -49,7 +47,6 @@ export const useFormatDoodleList = (zoom: Ref<number>, originDoodleList: Ref<IDo
           name: item.labelName,
           type: item.labelType || 'rect',
           id: item.id,
-          isNew: item.isNew,
         } as IFormatDoodle
       })
     },
@@ -64,7 +61,6 @@ export const useFormatDoodleList = (zoom: Ref<number>, originDoodleList: Ref<IDo
           labelColor: doodle.color,
           labelName: doodle.name,
           labelType: doodle.type,
-          isNew: doodle.isNew,
         }
       })
     },
@@ -88,20 +84,14 @@ export const useFormatDoodleList = (zoom: Ref<number>, originDoodleList: Ref<IDo
     // 新增
     if (!_doodle.id) {
       // 请求Id
-      doodle.id = uuidV4()
-      doodleList.value = [...doodleList.value, { ..._doodle, isNew: true }]
+      _doodle.id = uuidV4()
+      doodleList.value = [...doodleList.value, { ..._doodle }]
     } else {
-      const index = doodleList.value.findIndex((item) => item.id === doodle.id)!
-      doodleList.value.splice(index, 1, { ...doodle })
+      const index = doodleList.value.findIndex((item) => item.id === _doodle.id)!
+      doodleList.value.splice(index, 1, { ..._doodle })
     }
 
-    return {
-      ..._doodle,
-      x1: _doodle.originX1 * zoom.value,
-      y1: _doodle.originY1 * zoom.value,
-      x2: _doodle.originX2 * zoom.value,
-      y2: _doodle.originY2 * zoom.value,
-    }
+    return _doodle.id
   }
 
   return {

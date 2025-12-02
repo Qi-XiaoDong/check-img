@@ -1,6 +1,25 @@
 import { computed, readonly, ref, watchEffect } from 'vue'
 export type TDrawType = 'rect' | 'point' | 'line'
 export const useDrawCtrl = () => {
+  const paletteList = [
+    {
+      color: '#438FFF',
+    },
+    {
+      color: '#1ABE6B',
+    },
+    {
+      color: '#FFBB00',
+    },
+    {
+      color: '#E23C39',
+    },
+    {
+      color: '#B620E0',
+    },
+  ]
+
+  const currentPaletteColor = ref(paletteList[3]!.color)
   // 是否处于编辑状态
   const isEdit = ref(false)
   // 是否允许绘制
@@ -33,6 +52,7 @@ export const useDrawCtrl = () => {
     allowDraw: readonly(_allowDraw),
     allViewerOp: readonly(allViewerOp),
     drawType: readonly(drawType),
-    setIsEdit: (_isEdit: boolean) => (isEdit.value = _isEdit),
+    paletteList,
+    currentPaletteColor: readonly(currentPaletteColor),
   }
 }

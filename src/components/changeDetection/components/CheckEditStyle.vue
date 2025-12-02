@@ -1,5 +1,5 @@
 <template>
-  <div class="check-style-container" @click.stop="() => {}">
+  <div class="check-style-container" ref="styleContainerRef">
     <div class="input-wrapper">
       <input
         id="inputValue"
@@ -77,6 +77,8 @@ const emits = defineEmits<{
   (e: 'close-before'): void
 }>()
 
+const styleContainerRef = ref<HTMLDivElement>()
+
 const inputValue = ref(props.doodle.name)
 
 const _selectPaletteColor = ref(props.doodle.color || '#438FFF')
@@ -92,12 +94,14 @@ watchEffect(() => {
 })
 
 onMounted(() => {
-  console.log('挂载', props.doodle)
   emits('open-before')
+
+  styleContainerRef.value?.addEventListener('mousedown', (e) => {
+    e.stopPropagation()
+  })
 })
 
 onBeforeUnmount(() => {
-  console.log('卸载')
   emits('close-before')
 })
 
@@ -128,14 +132,20 @@ const handlerSelect = () => {
   // })
   paletteShow.value = !paletteShow.value
 }
+
+defineExpose({
+  close: handlerCancel,
+})
 </script>
 
 <style lang="scss" scope>
 .check-style-container {
   position: absolute;
-  margin-top: v-bind(topPx);
-  margin-left: v-bind(leftPx);
+  top: v-bind(topPx);
+  left: v-bind(leftPx);
+  z-index: 100;
 }
+
 .input-wrapper {
   display: flex;
   width: 314px;
@@ -154,6 +164,7 @@ input {
   border: none;
   outline: none;
 }
+
 input::placeholder {
   color: #dcdfe6;
 }
@@ -162,26 +173,34 @@ input::placeholder {
   flex: 1;
   display: flex;
   align-items: center;
+
   i {
     flex: 1;
+
     &:hover {
       cursor: pointer;
     }
   }
+
   .iconfont {
     font-size: 14px;
+
     &:hover {
       font-size: 16px;
     }
+
     &.icon-check {
       color: #67c23a;
     }
+
     &.icon-quxiao {
       color: #ff5e5e;
     }
+
     &.icon-shanchu {
       color: #606266;
     }
+
     &.icon-tiaosepan {
       color: #e23c39;
     }
@@ -204,15 +223,18 @@ input::placeholder {
   justify-content: space-around;
   align-items: center;
 }
+
 .palette-item {
   width: 16px;
   height: 16px;
   border-radius: 2px;
   position: relative;
+
   &:hover {
     cursor: pointer;
     transform: scale(1.1);
   }
+
   &.active::after {
     font-family: 'iconfont' !important;
     content: '\e720';

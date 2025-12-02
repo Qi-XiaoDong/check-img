@@ -10,8 +10,10 @@ export const useMouseEvent = (data: {
   setDoodleList: any
   drawType: Ref<TDrawType>
   allowDraw: Ref<boolean>
+  viewerIns: Ref<Viewer>
+  paletteColor: Ref<string>
 }) => {
-  const { dom, setDoodleList, drawType, allowDraw } = data
+  const { dom, setDoodleList, drawType, allowDraw, viewerIns, paletteColor } = data
 
   let canvasDom: any = null
 
@@ -22,7 +24,7 @@ export const useMouseEvent = (data: {
     y1: 0,
     x2: 0,
     y2: 0,
-    color: 'blue',
+    color: paletteColor.value,
     type: drawType.value,
   }
 
@@ -85,7 +87,7 @@ export const useMouseEvent = (data: {
     doodle.y2 = doodle.y1
     doodle.type = drawType.value
     // 设置画笔样式
-    ctx!.strokeStyle = 'blue' // 矩形边框颜色
+    ctx!.strokeStyle = paletteColor.value // 矩形边框颜色
     ctx!.lineWidth = 2 // 边框宽度
 
     if (drawType.value === 'point') {
@@ -100,16 +102,16 @@ export const useMouseEvent = (data: {
    * @param e
    */
   async function domMouseUp(e: any) {
-    const _doodle = await setDoodleList(doodle)
+    const id = await setDoodleList(doodle)
 
     deleteCanvas(dom)
-    doodle = { x1: 0, y1: 0, x2: 0, y2: 0, color: 'blue', type: drawType.value }
+    doodle = { x1: 0, y1: 0, x2: 0, y2: 0, color: paletteColor.value, type: drawType.value }
     dom.style.cursor = 'default'
     dom.removeEventListener('mouseup', domMouseUp)
     dom.removeEventListener('mousemove', domMouseMove)
     emitter.emit('open-check-style', {
-      viewerIns: '' as unknown as any,
-      options: { doodle: _doodle },
+      viewerIns: viewerIns.value,
+      options: { doodleId: id },
     })
   }
   /**

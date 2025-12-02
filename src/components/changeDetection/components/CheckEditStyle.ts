@@ -9,7 +9,7 @@ export interface checkEditStyleOptions {
   }[]
   top?: number
   left?: number
-  doodle?: Partial<IFormatDoodle>
+  doodle?: IFormatDoodle
   appendContainerHtml: HTMLElement
   openBefore?: () => void
   closeBefore?: () => void
@@ -42,7 +42,6 @@ class CheckStyle {
     if (!allowMultiple) {
       // 销毁其他实例
       checkEditStyleInstances.forEach((item) => {
-        console.log(item)
         item.clearNode()
       })
     }
@@ -80,6 +79,12 @@ class CheckStyle {
     return {
       close,
     }
+  }
+
+  clear() {
+    checkEditStyleInstances.forEach((item) => {
+      item.clearNode()
+    })
   }
 }
 
