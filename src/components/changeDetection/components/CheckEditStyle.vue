@@ -85,9 +85,9 @@ const _selectPaletteColor = ref(props.doodle.color || '#438FFF')
 
 const paletteShow = ref(false)
 
-const topPx = computed(() => `${props.top || Math.max(props.doodle.y1!, props.doodle.y2!)}px `)
+const topPx = computed(() => `${props.top || Math.max(props.doodle.y1!, props.doodle.y2!) + 5}px `)
 
-const leftPx = computed(() => `${props.left || Math.max(props.doodle.x1!, props.doodle.x2!)}px`)
+const leftPx = computed(() => `${props.left || Math.min(props.doodle.x1!, props.doodle.x2!)}px`)
 
 watchEffect(() => {
   console.log('watchEffect', props.doodle)
@@ -144,6 +144,7 @@ defineExpose({
   top: v-bind(topPx);
   left: v-bind(leftPx);
   z-index: 100;
+  pointer-events: auto;
 }
 
 .input-wrapper {

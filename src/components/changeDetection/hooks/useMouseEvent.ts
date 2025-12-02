@@ -102,17 +102,20 @@ export const useMouseEvent = (data: {
    * @param e
    */
   async function domMouseUp(e: any) {
-    const id = await setDoodleList(doodle)
-
-    deleteCanvas(dom)
-    doodle = { x1: 0, y1: 0, x2: 0, y2: 0, color: paletteColor.value, type: drawType.value }
-    dom.style.cursor = 'default'
     dom.removeEventListener('mouseup', domMouseUp)
     dom.removeEventListener('mousemove', domMouseMove)
-    emitter.emit('open-check-style', {
-      viewerIns: viewerIns.value,
-      options: { doodleId: id },
-    })
+    dom.style.cursor = 'default'
+    // 判断鼠标移动距离小于10px则不绘制
+    if (Math.abs(doodle.x1 - doodle.x2) < 10 && Math.abs(doodle.y1 - doodle.y2) < 10) {
+    } else {
+      const id = await setDoodleList(doodle)
+      deleteCanvas(dom)
+      doodle = { x1: 0, y1: 0, x2: 0, y2: 0, color: paletteColor.value, type: drawType.value }
+      emitter.emit('open-check-style', {
+        viewerIns: viewerIns.value,
+        options: { doodleId: id },
+      })
+    }
   }
   /**
    *鼠标移动

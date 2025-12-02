@@ -261,6 +261,7 @@ const InjectStyle = () => {
     position: absolute;
     background: var(--bg-color);
     cursor: pointer;
+    pointer-events: auto;
   }
   .rect-item::after {
     content: ' ';

@@ -305,4 +305,9 @@ defineExpose({
 .is-doodle .doodle-container .doodle-container-warp canvas {
   pointer-events: none;
 }
+
+.doodle-container-warp {
+  z-index: 2;
+  pointer-events: none;
+}
 </style>
