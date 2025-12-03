@@ -24,8 +24,8 @@
         <button @click="rotate">旋转</button>
         <button @click="zoomTo">100%比例</button>
         <button @click="reset">重置</button>
-        <button @click="setDrawType('rect')">矩形</button>
-        <button @click="setDrawType('line')">线</button>
+        <button @click="setDrawType(E_DrawType.rect)">矩形</button>
+        <button @click="setDrawType(E_DrawType.line)">线</button>
         <!-- <button @click="setDrawType('point')">点</button> -->
         <button @click="currentDetectionIndex = ++currentDetectionIndex % 3">下一张</button>
         <button @click="setAllowDraw">编辑</button>
@@ -37,6 +37,7 @@
 <script lang="ts" setup>
 import TheCheckImg from './components/TheCheckImg.vue'
 import { computed, ref } from 'vue'
+import { E_DrawType } from './hooks/useDrawCtrl'
 
 const props = withDefaults(
   defineProps<{
@@ -119,7 +120,7 @@ const reset = () => {
   targetImgRef.value?.reset()
 }
 
-const setDrawType = (type: 'rect' | 'point' | 'line') => {
+const setDrawType = (type: E_DrawType) => {
   originImgRef.value?.setDrawType?.(type)
   targetImgRef.value?.setDrawType(type)
 }

@@ -3,143 +3,162 @@ import Viewer from 'viewerjs'
 import type { IFormatDoodle } from './useFormatDoodleList'
 import { emitter } from '../core/mitt'
 import { E_DrawType } from '@/components/changeDetection/hooks/useDrawCtrl'
+import { getRotateAngleFromElement } from '../core/getRotateAngleFromElement'
 
 /**
  * 在图片上元素
  * @param data
  */
 export const useCreateDom = (data: {
-    viewerIns: Ref<Viewer>
-    imageIns: Ref<HTMLImageElement>
-    photoWrapperRef: Ref<HTMLDivElement>
-    doodleList: Ref<IFormatDoodle[]>
+  viewerIns: Ref<Viewer>
+  imageIns: Ref<HTMLImageElement>
+  photoWrapperRef: Ref<HTMLDivElement>
+  doodleList: Ref<IFormatDoodle[]>
 }) => {
-    InjectStyle()
-    const { viewerIns, imageIns, photoWrapperRef, doodleList } = data
-    const doodleMaskElement = document.createElement('div')
-    const doodleContainerElement = document.createElement('div')
-    const doodleContainerWarpElement = document.createElement('div')
-    const config = { attributes: true, childList: true, subtree: true }
-    const observer = null
+  InjectStyle()
+  const { viewerIns, imageIns, photoWrapperRef, doodleList } = data
+  const doodleMaskElement = document.createElement('div')
+  const doodleContainerElement = document.createElement('div')
+  const doodleContainerWarpElement = document.createElement('div')
+  const config = { attributes: true, childList: true, subtree: true }
+  const observer = null
 
-    // 当观察到变动时执行的回调函数
-    const ObserverCallback = function (mutationsList: any, observer: any) {
-        for (const mutation of mutationsList) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                adjustMaskElement(mutation.target)
-            } else {
-                //
-            }
-        }
+  // 当观察到变动时执行的回调函数
+  const ObserverCallback = function (mutationsList: any, observer: any) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+        adjustMaskElement(mutation.target)
+      } else {
+        //
+      }
     }
+  }
 
-    watch(
-        imageIns,
-        (img: any) => {
-            if (img) {
-                adjustMaskElement(img)
-                // 创建一个观察器实例并传入回调函数
-                const observer = new MutationObserver(ObserverCallback)
-                // 以上述配置开始观察目标节点
-                observer.observe(img, config)
-            }
-        },
-        { immediate: true }
-    )
+  watch(
+    imageIns,
+    (img: any) => {
+      if (img) {
+        adjustMaskElement(img)
+        // 创建一个观察器实例并传入回调函数
+        const observer = new MutationObserver(ObserverCallback)
+        // 以上述配置开始观察目标节点
+        observer.observe(img, config)
+      }
+    },
+    { immediate: true },
+  )
 
-    watch(
-        photoWrapperRef,
-        (wrapper) => {
-            if (!wrapper) return
-            doodleContainerElement.style.position = 'absolute'
-            doodleContainerElement.classList.add('doodle-container')
-            doodleContainerElement.appendChild(doodleContainerWarpElement)
-            doodleContainerWarpElement.style.position = 'absolute'
-            doodleContainerWarpElement.style.width = 100 + '%'
-            doodleContainerWarpElement.style.height = 100 + '%'
-            doodleContainerWarpElement.classList.add('doodle-container-warp')
-            doodleMaskElement.style.position = 'absolute'
-            doodleMaskElement.classList.add('doodle-mask')
-            wrapper && wrapper.appendChild(doodleMaskElement)
-            wrapper && wrapper.appendChild(doodleContainerElement)
-        },
-        { immediate: true }
-    )
+  watch(
+    photoWrapperRef,
+    (wrapper) => {
+      if (!wrapper) return
+      doodleContainerElement.style.position = 'absolute'
+      doodleContainerElement.classList.add('doodle-container')
+      doodleContainerElement.appendChild(doodleContainerWarpElement)
+      doodleContainerWarpElement.style.position = 'absolute'
+      doodleContainerWarpElement.style.width = 100 + '%'
+      doodleContainerWarpElement.style.height = 100 + '%'
+      doodleContainerWarpElement.classList.add('doodle-container-warp')
+      doodleMaskElement.style.position = 'absolute'
+      doodleMaskElement.classList.add('doodle-mask')
+      wrapper && wrapper.appendChild(doodleMaskElement)
+      wrapper && wrapper.appendChild(doodleContainerElement)
+    },
+    { immediate: true },
+  )
 
-    watch(
-        doodleList,
-        (newDoodleList) => {
-            if (newDoodleList.length)
-                newDoodleList.forEach((doodle) => {
-                    createDoodle(doodle)
-                })
-        },
-        { immediate: true }
-    )
+  watch(
+    doodleList,
+    (newDoodleList) => {
+      if (newDoodleList.length)
+        newDoodleList.forEach((doodle) => {
+          createDoodle(doodle)
+        })
+    },
+    { immediate: true },
+  )
 
-    /**
-     * 调整doodleMaskElement和doodleMaskElement
-     */
+  /**
+   * 调整doodleMaskElement和doodleMaskElement
+   */
 
-    function adjustMaskElement(target: any) {
-        const { height, width, marginLeft, marginTop, transform } = target.style
-        doodleContainerElement.style.cssText = `
-          position: absolute;
-          margin-top: ${marginTop};
-          margin-left: ${marginLeft};
-          height: ${height};
-          width: ${width};
-          z-index: 2;
-          transform: ${transform};
-        `
-        doodleMaskElement.style.cssText = `
-         position: absolute;
-          margin-top: ${marginTop};
-          margin-left: ${marginLeft};
-          height: ${height};
-          width: ${width}
-          z-index: 1;
-          transform: ${transform};
-        `
+  function adjustMaskElement(target: any) {
+    const { height, width, marginLeft, marginTop, transform } = target.style
+    doodleContainerElement.style.cssText = `
+        position: absolute;
+        margin-top: ${marginTop};
+        margin-left: ${marginLeft};
+        height: ${height};
+        width: ${width};
+        z-index: 2;
+        transform: ${transform};
+      `
+    doodleMaskElement.style.cssText = `
+        position: absolute;
+        margin-top: ${marginTop};
+        margin-left: ${marginLeft};
+        height: ${height};
+        width: ${width}
+        z-index: 1;
+        transform: ${transform};
+      `
+    adjustTextWarpPos()
+  }
+
+  function adjustTextWarpPos() {
+    const angle = getRotateAngleFromElement(doodleContainerElement)
+    const textWrapperElementList = doodleContainerWarpElement.querySelectorAll('.text-wrapper')
+    textWrapperElementList.forEach((textWarpItem: any) => {
+      const { width, height } = textWarpItem.getBoundingClientRect()
+      if (angle === 0) {
+        textWarpItem.style.transform = `translateY(100%) rotate(${0}deg)`
+      }
+      if (angle === 90) {
+        console.log(angle)
+        console.log(`translate(${height}px, ${width}px) rotate(${-angle}deg)`)
+        textWarpItem.style.transform = `translate(${width}px, ${height}px) rotate(${-angle}deg)`
+      }
+    })
+  }
+
+  /**
+   * 创建doodle
+   * @param doodle
+   */
+  function createDoodle(doodle: IFormatDoodle) {
+    const selectorString = `div[data-x1='${doodle.originX1}'][data-y1='${doodle.originY1}']`
+    let dom = doodleContainerWarpElement.querySelector(selectorString) as HTMLDivElement
+    if (doodle.type === E_DrawType.rect) dom = createRect(doodle, dom)
+    if (doodle.type === E_DrawType.line) dom = createLine(doodle, dom)
+    adjustDoodle(doodle, dom)
+    adjustTextWarpPos()
+  }
+
+  /**
+   * image 放大/缩小
+   */
+  function adjustDoodle(doodle: IFormatDoodle, dom: HTMLDivElement) {
+    if (doodle.type === E_DrawType.rect) adjustRect(doodle, dom)
+    if (doodle.type === E_DrawType.line) adjustLine(doodle, dom)
+  }
+
+  /**
+   * 绘制矩形
+   * @param doodle
+   * @param _dom
+   * @returns
+   */
+  function createRect(doodle: IFormatDoodle, _dom: HTMLDivElement) {
+    if (_dom) {
+      _dom.getElementsByClassName('text')[0]!.innerHTML = doodle.name
+      return _dom
     }
+    const dom = document.createElement('div')
+    dom.setAttribute('data-x1', doodle.originX1.toString())
+    dom.setAttribute('data-y1', doodle.originY1.toString())
+    dom.setAttribute('data-id', doodle.id?.toString()!)
 
-    /**
-     * 创建doodle
-     * @param doodle
-     */
-    function createDoodle(doodle: IFormatDoodle) {
-        const selectorString = `div[data-x1='${doodle.originX1}'][data-y1='${doodle.originY1}']`
-        let dom = doodleContainerWarpElement.querySelector(selectorString) as HTMLDivElement
-        if (doodle.type === E_DrawType.rect) dom = createRect(doodle, dom)
-        if (doodle.type === E_DrawType.line) dom = createLine(doodle, dom)
-        adjustDoodle(doodle, dom)
-    }
-
-    /**
-     * image 放大/缩小
-     */
-    function adjustDoodle(doodle: IFormatDoodle, dom: HTMLDivElement) {
-        if (doodle.type === E_DrawType.rect) adjustRect(doodle, dom)
-        if (doodle.type === E_DrawType.line) adjustLine(doodle, dom)
-    }
-
-    /**
-     * 绘制矩形
-     * @param doodle
-     * @param _dom
-     * @returns
-     */
-    function createRect(doodle: IFormatDoodle, _dom: HTMLDivElement) {
-        if (_dom) {
-            _dom.getElementsByClassName('text')[0].innerText = doodle.name
-            return _dom
-        }
-        const dom = document.createElement('div')
-        dom.setAttribute('data-x1', doodle.originX1.toString())
-        dom.setAttribute('data-y1', doodle.originY1.toString())
-        dom.setAttribute('data-id', doodle.id?.toString()!)
-
-        dom.innerHTML = `
+    dom.innerHTML = `
               <div class="rect-top rect-item" data-child="true" data-type="top"></div>
               <div class="rect-right rect-item" data-child="true" data-type="right"></div>
               <div class="rect-bottom rect-item" data-child="true" data-type="bottom"></div>
@@ -148,45 +167,45 @@ export const useCreateDom = (data: {
                 <div class="text" data-child="true">${doodle.name}</div>
               </div>
          `
-        doodleContainerWarpElement.appendChild(dom)
+    doodleContainerWarpElement.appendChild(dom)
 
-        dom.addEventListener('click', function (event) {
-            // 阻止冒泡
-            event.stopPropagation()
-            const target = event.target as HTMLDivElement
-            if (target.dataset.child === 'true') {
-                emitter.emit('open-check-style', {
-                    viewerIns: viewerIns.value,
-                    options: { doodleId: doodle.id }
-                })
-            }
+    dom.addEventListener('click', function (event) {
+      // 阻止冒泡
+      event.stopPropagation()
+      const target = event.target as HTMLDivElement
+      if (target.dataset.child === 'true') {
+        emitter.emit('open-check-style', {
+          viewerIns: viewerIns.value,
+          options: { doodleId: doodle.id },
         })
-        dom.addEventListener('mouseover', function (event) {
-            event.stopPropagation()
-            const target = event.target as HTMLDivElement
-            if (target.dataset.child === 'true') {
-                dom.classList.add('is-hover')
-            }
-        })
+      }
+    })
+    dom.addEventListener('mouseover', function (event) {
+      event.stopPropagation()
+      const target = event.target as HTMLDivElement
+      if (target.dataset.child === 'true') {
+        dom.classList.add('is-hover')
+      }
+    })
 
-        dom.addEventListener('mouseout', function (event) {
-            dom.classList.remove('is-hover')
-        })
-        return dom
-    }
+    dom.addEventListener('mouseout', function (event) {
+      dom.classList.remove('is-hover')
+    })
+    return dom
+  }
 
-    /**
-     *调整矩形
-     * @param doodle
-     * @param dom
-     */
-    function adjustRect(doodle: IFormatDoodle, dom: HTMLDivElement) {
-        const { x1, y1, x2, y2 } = doodle
-        const minY = Math.min(y1, y2)
-        const minX = Math.min(x1, x2)
-        const width = Math.abs(x2 - x1)
-        const height = Math.abs(y2 - y1)
-        dom!.style.cssText = `
+  /**
+   *调整矩形
+   * @param doodle
+   * @param dom
+   */
+  function adjustRect(doodle: IFormatDoodle, dom: HTMLDivElement) {
+    const { x1, y1, x2, y2 } = doodle
+    const minY = Math.min(y1, y2)
+    const minX = Math.min(x1, x2)
+    const width = Math.abs(x2 - x1)
+    const height = Math.abs(y2 - y1)
+    dom!.style.cssText = `
         position: absolute;
         top: ${minY}px;
         left: ${minX}px;
@@ -196,49 +215,52 @@ export const useCreateDom = (data: {
         background-color: transparent;
         --bg-color: ${doodle.color};
       `
+  }
+
+  /**
+   * 绘制线
+   * @param doodle
+   * @param _dom
+   * @returns
+   */
+
+  function createLine(doodle: IFormatDoodle, _dom: HTMLDivElement) {
+    if (_dom) {
+      return _dom
     }
+    const dom = document.createElement('div')
+    dom.setAttribute('data-x1', doodle.originX1.toString())
+    dom.setAttribute('data-y1', doodle.originY1.toString())
+    dom.setAttribute('data-id', doodle.id?.toString()!)
 
-    /**
-     * 绘制线
-     * @param doodle
-     * @param _dom
-     * @returns
-     */
+    doodleContainerWarpElement.appendChild(dom)
+    return dom
+  }
 
-    function createLine(doodle: IFormatDoodle, _dom: HTMLDivElement) {
-        if (_dom) {
-            return _dom
-        }
-        const dom = document.createElement('div')
-        dom.setAttribute('data-x1', doodle.originX1.toString())
-        dom.setAttribute('data-y1', doodle.originY1.toString())
-        dom.setAttribute('data-id', doodle.id?.toString()!)
-
-        doodleContainerWarpElement.appendChild(dom)
-        return dom
+  /**
+   * 调整线
+   * @param doodle
+   * @param dom
+   */
+  function adjustLine(doodle: IFormatDoodle, dom: HTMLDivElement) {
+    const { x1, y1, x2, y2, color, type } = doodle
+    console.log(doodle, 'doodle')
+    const minY = Math.min(y1, y2)
+    const minX = Math.min(x1, x2)
+    const maxY = Math.max(y1, y2)
+    const maxX = Math.max(x1, x2)
+    let width = 0
+    if (x1 === x2) width = Math.abs(y1 - y2)
+    if (y1 === y2) width = Math.abs(x1 - x2)
+    else {
+      width = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxY - minY, 2))
     }
-
-    /**
-     * 调整线
-     * @param doodle
-     * @param dom
-     */
-    function adjustLine(doodle: IFormatDoodle, dom: HTMLDivElement) {
-        const { x1, y1, x2, y2, color, type } = doodle
-        const minY = Math.min(y1, y2)
-        const minX = Math.min(x1, x2)
-        let width = 0
-        if (x1 === x2) width = Math.abs(y1 - y2)
-        if (y1 === y2) width = Math.abs(x1 - x2)
-        else {
-            width = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
-        }
-        let angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI
-        if (angle < 0) angle += 360
-        dom!.style.cssText = `
+    let angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI
+    if (angle < 0) angle += 360
+    dom!.style.cssText = `
       position: absolute;
-      top: ${minY}px;
-      left: ${minX}px;
+      top: ${y1}px;
+      left: ${x1}px;
       width: ${width}px;
       height: 3px;
       transform: rotate(${angle}deg);
@@ -246,46 +268,43 @@ export const useCreateDom = (data: {
       background: ${color};
         z-index: 99;
     `
-    }
+  }
 
-    /**
-     * 清空绘制元素
-     */
-    function clearDraWRenderElement() {
-        doodleContainerWarpElement.innerHTML = ''
-    }
+  /**
+   * 清空绘制元素
+   */
+  function clearDraWRenderElement() {
+    doodleContainerWarpElement.innerHTML = ''
+  }
 
-    return {
-        doodleContainerElement,
-        clearDraWRenderElement,
-        doodleContainerWarpElement
-    }
+  return {
+    doodleContainerElement,
+    clearDraWRenderElement,
+    doodleContainerWarpElement,
+  }
 }
 
 const InjectStyle = () => {
-    const isHoverStyle = `
+  const isHoverStyle = `
   .is-hover {
     border: 2px solid #fff;
   }
   `
 
-    const textWrapperStyle = `
+  const textWrapperStyle = `
   .text-wrapper {
     position: absolute;
     bottom: 0;
     left: 0;
-    transform: translateY(100%);
-    width: 100%;
-    height: 20px;
     font-weight: bold;
     cursor: pointer;
     color:#000;
     pointer-events: auto;
      -webkit-text-stroke: 1px #fff;
-    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
-  }`
+  }
+  `
 
-    const rectItemStyle = `
+  const rectItemStyle = `
   .rect-item {
     position: absolute;
     background: var(--bg-color);
@@ -300,7 +319,7 @@ const InjectStyle = () => {
 
   }
   `
-    const rectLeftStyle = `
+  const rectLeftStyle = `
   .rect-left {
     top: 0;
     left: 0;
@@ -314,7 +333,7 @@ const InjectStyle = () => {
     border-right: 2px solid #fff;
   }
   `
-    const rectRightStyle = `
+  const rectRightStyle = `
   .rect-right {
     top: 0;
     right: 0;
@@ -329,7 +348,7 @@ const InjectStyle = () => {
     border-left: 2px solid #fff;
   }
   `
-    const rectTopStyle = `
+  const rectTopStyle = `
   .rect-top {
     top: 0;
     left: 0;
@@ -345,7 +364,7 @@ const InjectStyle = () => {
     border-bottom: 2px solid #fff;
   }
   `
-    const rectBottomStyle = `
+  const rectBottomStyle = `
   .rect-bottom {
     bottom: 0;
     left: 0;
@@ -359,11 +378,11 @@ const InjectStyle = () => {
     border-top:2px solid #fff;
   }
   `
-    // 1. 创建 style 元素
-    const style = document.createElement('style')
+  // 1. 创建 style 元素
+  const style = document.createElement('style')
 
-    // 2. 写入要添加的样式（支持多行字符串）
-    style.textContent = `
+  // 2. 写入要添加的样式（支持多行字符串）
+  style.textContent = `
     ${isHoverStyle}
     ${rectItemStyle}
     ${rectLeftStyle}
@@ -373,6 +392,6 @@ const InjectStyle = () => {
     ${textWrapperStyle}
   `
 
-    // 3. 将 style 标签插入到 header 中（末尾位置）
-    document.querySelector('head')!.appendChild(style)
+  // 3. 将 style 标签插入到 header 中（末尾位置）
+  document.querySelector('head')!.appendChild(style)
 }
