@@ -3,6 +3,7 @@
 </template>
 
 <script lang="ts" setup>
+//TODO：移动 缩放 旋转 暂时清空选中效果
 import 'viewerjs/dist/viewer.css'
 import Viewer from 'viewerjs'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -266,7 +267,7 @@ function createViewer(url: string) {
       })
     },
     zoom: (e: any) => {
-      // emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
+      emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
       zoomNum.value = e.detail.ratio
       emitter.emit('viewer-zoom', {
         viewerIns: viewerIns.value!,
@@ -274,7 +275,7 @@ function createViewer(url: string) {
       })
     },
     rotate(event) {
-      // emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
+      emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
     },
   })
 
