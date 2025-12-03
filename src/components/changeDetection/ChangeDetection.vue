@@ -43,6 +43,7 @@ const props = withDefaults(
   defineProps<{
     sourceUrl?: { mainUrl: string; subUrl: string }[]
     boundingCoordinates?: {
+      id: string
       leftX: number
       leftY: number
       rightX: number

@@ -23,6 +23,15 @@ export const useCreateDom = (data: {
   const config = { attributes: true, childList: true, subtree: true }
   const observer = null
 
+  emitter.on('draw-rect-active', ({ id }) => {
+    const prevActiveDom = document.querySelector('.__is-active')
+    prevActiveDom && prevActiveDom.classList.remove('__is-active')
+    if (id) {
+      const dom = document.querySelector('div[data-id="' + id + '"]')
+      dom && dom.classList.add('__is-active')
+    }
+  })
+
   // 当观察到变动时执行的回调函数
   const ObserverCallback = function (mutationsList: any, observer: any) {
     for (const mutation of mutationsList) {
@@ -191,12 +200,12 @@ export const useCreateDom = (data: {
       event.stopPropagation()
       const target = event.target as HTMLDivElement
       if (target.dataset.child === 'true') {
-        dom.classList.add('is-hover')
+        dom.classList.add('__is-hover')
       }
     })
 
     dom.addEventListener('mouseout', function (event) {
-      dom.classList.remove('is-hover')
+      dom.classList.remove('__is-hover')
     })
     return dom
   }
@@ -241,6 +250,22 @@ export const useCreateDom = (data: {
     dom.setAttribute('data-id', doodle.id?.toString()!)
 
     doodleContainerWarpElement.appendChild(dom)
+    dom.addEventListener('click', function (event) {
+      // 阻止冒泡
+      event.stopPropagation()
+      emitter.emit('open-check-style', {
+        viewerIns: viewerIns.value,
+        options: { doodleId: doodle.id },
+      })
+    })
+    dom.addEventListener('mouseover', function (event) {
+      event.stopPropagation()
+      dom.classList.add('__is-hover')
+    })
+
+    dom.addEventListener('mouseout', function (event) {
+      dom.classList.remove('__is-hover')
+    })
     return dom
   }
 
@@ -251,7 +276,6 @@ export const useCreateDom = (data: {
    */
   function adjustLine(doodle: IFormatDoodle, dom: HTMLDivElement) {
     const { x1, y1, x2, y2, color, type } = doodle
-    console.log(doodle, 'doodle')
     const minY = Math.min(y1, y2)
     const minX = Math.min(x1, x2)
     const maxY = Math.max(y1, y2)
@@ -270,6 +294,7 @@ export const useCreateDom = (data: {
       left: ${x1}px;
       width: ${width}px;
       height: 3px;
+      cursor: pointer;
       transform: rotate(${angle}deg);
       transform-origin: left top;
       background: ${color};
@@ -293,7 +318,8 @@ export const useCreateDom = (data: {
 
 const InjectStyle = () => {
   const isHoverStyle = `
-  .is-hover {
+  .__is-hover,
+  .__is-active {
     border: 2px solid #fff;
   }
   `
@@ -336,7 +362,8 @@ const InjectStyle = () => {
     width: 3px;
     height: 100%;
   }
-  .is-hover .rect-left::after {
+  .__is-active .rect-left::after,
+  .__is-hover .rect-left::after {
     left: 3px;
     top:50%;
     transform: translateY(-50%);
@@ -351,7 +378,8 @@ const InjectStyle = () => {
     height: 100%;
 
   }
-  .is-hover .rect-right::after {
+  .__is-active .rect-right::after,
+  .__is-hover .rect-right::after {
     right: 3px;
     top:50%;
     transform: translateY(-50%);
@@ -367,7 +395,8 @@ const InjectStyle = () => {
     cursor: pointer;
 
   }
-  .is-hover .rect-top::after {
+  .__is-active .rect-top::after
+  .__is-hover .rect-top::after {
     left: 50%;
     top:3px;
     transform: translateX(-50%);
@@ -381,7 +410,8 @@ const InjectStyle = () => {
     width: 100%;
     height: 3px;
   }
-  .is-hover .rect-bottom::after {
+  .__is-active .rect-bottom::after,
+  .__is-hover .rect-bottom::after {
     left: 50%;
     bottom:3px;
     transform: translateX(-50%);

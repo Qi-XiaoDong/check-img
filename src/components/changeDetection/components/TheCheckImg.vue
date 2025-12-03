@@ -1,10 +1,5 @@
 <template>
-  <div
-    ref="photoWrapperRef"
-    :class="{ 'is-doodle': allViewerOp }"
-    class="photo-wrapper"
-    style="flex: 1; height: 100%; border: 1px solid red"
-  />
+  <div ref="photoWrapperRef" :class="{ 'is-doodle': allViewerOp }" class="photo-wrapper" />
 </template>
 
 <script lang="ts" setup>
@@ -98,6 +93,12 @@ emitter.on('open-check-style', (data) => {
     doodle: doodleList.value.find((item) => item.id === doodleId) || ({} as IFormatDoodle),
     appendContainerHtml: doodleContainerWarpElement,
     paletteList: paletteList,
+    openBefore: () => {
+      emitter.emit('draw-rect-active', { id: doodleId })
+    },
+    closeBefore: () => {
+      emitter.emit('draw-rect-active', { id: undefined })
+    },
     onDelete: (id: string) => {
       // emits('deleteDetectTargetApi', { ids: [id] })
     },
@@ -265,7 +266,7 @@ function createViewer(url: string) {
       })
     },
     zoom: (e: any) => {
-      emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
+      // emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
       zoomNum.value = e.detail.ratio
       emitter.emit('viewer-zoom', {
         viewerIns: viewerIns.value!,
@@ -273,7 +274,7 @@ function createViewer(url: string) {
       })
     },
     rotate(event) {
-      emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
+      // emitter.emit('clear-check-style', { viewerIns: viewerIns.value! })
     },
   })
 
@@ -309,7 +310,10 @@ defineExpose({
 
 <style>
 .photo-wrapper {
-  overflow: hidden;
+  flex: 1;
+  height: 100%;
+  border: 1px solid red;
+  background: #000;
 }
 
 .is-doodle .doodle-mask {
