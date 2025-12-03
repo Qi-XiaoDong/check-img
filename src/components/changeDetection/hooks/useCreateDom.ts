@@ -302,7 +302,8 @@ const InjectStyle = () => {
   .text-wrapper {
     position: absolute;
     top: 100%;
-    max-width: 100%;
+    min-width: 100%;
+    word-break: break-all;
     left: 0;
     font-weight: bold;
     cursor: pointer;

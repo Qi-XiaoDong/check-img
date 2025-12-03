@@ -23,8 +23,6 @@ import { v4 as uuidV4 } from 'uuid'
 const props = defineProps<{
   url: string
   boundingCoordinates?: IDoodle[]
-  detectId: string
-  detectTarget: string
 }>()
 
 const emits = defineEmits<{
