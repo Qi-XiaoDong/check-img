@@ -109,15 +109,22 @@ export const useCreateDom = (data: {
     const angle = getRotateAngleFromElement(doodleContainerElement)
     const textWrapperElementList = doodleContainerWarpElement.querySelectorAll('.text-wrapper')
     textWrapperElementList.forEach((textWarpItem: any) => {
-      const { width, height } = textWarpItem.getBoundingClientRect()
-      if (angle === 0) {
-        textWarpItem.style.transform = `translateY(100%) rotate(${0}deg)`
-      }
+      const { width } = textWarpItem.getBoundingClientRect()
+      let top = '100%'
+      let left = '0px'
       if (angle === 90) {
-        console.log(angle)
-        console.log(`translate(${height}px, ${width}px) rotate(${-angle}deg)`)
-        textWarpItem.style.transform = `translate(${width}px, ${height}px) rotate(${-angle}deg)`
+        left = -width + 'px'
       }
+      if (angle === 180) {
+        top = `0px`
+        left = '100%'
+      }
+      if (angle === 270) {
+        top = '0px'
+      }
+      textWarpItem.style.transform = `rotate(${-angle}deg)`
+      textWarpItem.style.top = top
+      textWarpItem.style.left = left
     })
   }
 
@@ -294,12 +301,14 @@ const InjectStyle = () => {
   const textWrapperStyle = `
   .text-wrapper {
     position: absolute;
-    bottom: 0;
+    top: 100%;
+    max-width: 100%;
     left: 0;
     font-weight: bold;
     cursor: pointer;
     color:#000;
     pointer-events: auto;
+    transform-origin: left top;
      -webkit-text-stroke: 1px #fff;
   }
   `
