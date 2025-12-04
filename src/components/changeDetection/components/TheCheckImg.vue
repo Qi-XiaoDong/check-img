@@ -98,7 +98,7 @@ emitter.on('open-check-style', (data) => {
       emitter.emit('draw-rect-active', { id: doodleId })
     },
     closeBefore: () => {
-      emitter.emit('draw-rect-active', { id: undefined })
+      // emitter.emit('draw-rect-active', { id: undefined })
     },
     onDelete: (id: string) => {
       // emits('deleteDetectTargetApi', { ids: [id] })
@@ -315,6 +315,7 @@ defineExpose({
   height: 100%;
   border: 1px solid red;
   background: #000;
+  overflow: hidden;
 }
 
 .is-doodle .doodle-mask {

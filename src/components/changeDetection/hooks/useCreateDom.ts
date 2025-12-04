@@ -63,6 +63,8 @@ export const useCreateDom = (data: {
       if (!wrapper) return
       doodleContainerElement.style.position = 'absolute'
       doodleContainerElement.classList.add('doodle-container')
+      doodleContainerElement.style.width = 100 + '%'
+      doodleContainerElement.style.height = 100 + '%'
       doodleContainerElement.appendChild(doodleContainerWarpElement)
       doodleContainerWarpElement.style.position = 'absolute'
       doodleContainerWarpElement.style.width = 100 + '%'
